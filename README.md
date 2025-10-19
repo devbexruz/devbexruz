@@ -31,10 +31,11 @@ Backend development, Telegram bots, REST APIs, and Backend automation.
 ---
 
 ### 📫 How to reach me
-- 📧 Email: bexruzpy@gmail.com  
-- 💼 [LinkedIn](https://linkedin.com/in/bexruzdeveloper)  
+- 📧 Email: bexruzpy@gmail.com
+- 💼 [LinkedIn](https://linkedin.com/in/bexruzdeveloper)
+- [LeetCode](https://leetcode.com/u/bexruzdeveloper)
 - [GitHub](https://github.com/bexruzpy)
-- [Telegram](https://t.me/bexruzdeloper)
+- [Telegram](https://t.me/bexruzdeveloper)
 
 ---
 
