@@ -6,36 +6,35 @@ Passionate about writing clean, efficient code and exploring how AI can make sof
 ---
 
 ### 🔭 What I'm currently working on
-- Developing **Telegram bots** with Django + Aiogram  
-- Building **ASP.NET Core** web applications with Docker support  
-- Experimenting with **AI assistants** and natural language models  
+- Developing **Web Api** with Django Rest Frameword, Fast API, Flask
+- **ASP.NET Core** web applications with Docker support  
 
 ---
 
 ### 🌱 What I'm learning
-- Advanced **Python** & **C#** backend architecture  
-- **AI / Machine Learning** concepts  
-- **Docker**, **Celery**, and **Redis** for scalable apps  
+- Advanced **Python** & **C#** backend architecture
+- **Docker**, **Celery**, and **Redis** for scalable apps
 
 ---
 
 ### 🧠 Skills & Tools
 **Languages:** Python, C#, JavaScript  
-**Frameworks:** Django, FastAPI, ASP.NET Core  
-**Databases:** PostgreSQL, SQLite, MySQL  
-**Tools:** Git, Docker, Redis, Celery, Linux  
+**Frameworks:** Django, FastAPI, ASP.NET Core, Aiogram
+**Databases:** PostgreSQL, SQLite, MySQL
+**Tools:** Git, Docker, Redis, Celery, Linux
 
 ---
 
 ### 💬 Ask me about
-Backend development, Telegram bots, REST APIs, and AI-based automation.
+Backend development, Telegram bots, REST APIs, and Backend automation.
 
 ---
 
 ### 📫 How to reach me
-- 📧 Email: bexruzboynazarov@gmail.com  
-- 💼 [LinkedIn](https://linkedin.com/in/bexruzpy)  
-- 🐙 [GitHub](https://github.com/bexruzpy)
+- 📧 Email: bexruzpy@gmail.com  
+- 💼 [LinkedIn](https://linkedin.com/in/bexruzdeveloper)  
+- [GitHub](https://github.com/bexruzpy)
+- [Telegram](https://t.me/bexruzdeloper)
 
 ---
 
