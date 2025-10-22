@@ -34,7 +34,7 @@ Backend development, Telegram bots, REST APIs, and Backend automation.
 - 📧 Email: bexruzpy@gmail.com
 - 💼 [LinkedIn](https://linkedin.com/in/bexruzdeveloper)
 - [LeetCode](https://leetcode.com/u/bexruzdeveloper)
-- [GitHub](https://github.com/bexruzpy)
+- [GitHub](https://github.com/devbexruz)
 - [Telegram](https://t.me/bexruzdeveloper)
 
 ---
