@@ -1,4 +1,25 @@
 <div align="center">
+  <h3>🚀 Mening Loyihalarim</h3>
+
+  <a href="https://github.com/devbexruz/math_visual_bot">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=devbexruz&repo=math_visual_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Math Visual AI" />
+  </a>
+  <a href="https://github.com/devbexruz/dangasa_control">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=devbexruz&repo=dangasa_control&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Dangasa Control" />
+  </a>
+  <a href="https://github.com/devbexruz/labiti_ish_bot">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=devbexruz&repo=labiti_ish_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Labiti Ish Bot" />
+  </a>
+
+</div>
+
+<br>
+<br>
+<br>
+
+---
+
+<div align="center">
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&duration=4000&pause=1000&color=3F8EFC&center=true&vCenter=true&random=false&width=600&lines=Hey+there!+I'm+Bexruz+%F0%9F%91%8B;Backend+%26+AI%2FML+Developer;Building+Intelligent+Systems+%F0%9F%A4%96;Clean+Code+%E2%80%A2+Scalable+Architecture" alt="Typing SVG" />
 
