@@ -104,16 +104,6 @@ I'm a **Backend & AI/ML Developer** from Uzbekistan 🇺🇿 with a deep passion
 
 ---
 
-## 🏆 GitHub Trophies
-
-<div align="center">
-
-<img src="https://github-profile-trophy.vercel.app/?username=devbexruz&theme=tokyonight&no-frame=true&no-bg=true&column=7&margin-w=5" alt="GitHub Trophies" />
-
-</div>
-
----
-
 ## 📈 Contribution Graph
 
 <div align="center">
