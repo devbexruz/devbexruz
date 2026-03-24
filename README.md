@@ -1,5 +1,5 @@
 <div align="center">
-  <h3>🚀 Mening Loyihalarim</h3>
+  <h3>🚀 My Repositories</h3>
 </div>
 <div align="left">
   <a href="https://github.com/devbexruz/math_visual_bot">
