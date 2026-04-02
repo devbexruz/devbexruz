@@ -114,8 +114,8 @@ I'm a **Backend & AI/ML Developer** from Uzbekistan 🇺🇿 with a deep passion
 
 <div align="center">
 
-<img height="180em" src="https://github-readme-stats.vercel.app/api?username=devbexruz&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=3F8EFC&icon_color=3F8EFC&text_color=FFFFFF&count_private=true" alt="GitHub Stats" />
-<img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=devbexruz&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=3F8EFC&text_color=FFFFFF&langs_count=8" alt="Top Languages" />
+<img height="180em" src="https://github-readme-stats-dusky-six-78.vercel.app/api?username=devbexruz&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=3F8EFC&icon_color=3F8EFC&text_color=FFFFFF&count_private=true" alt="GitHub Stats" />
+<img height="180em" src="https://github-readme-stats-dusky-six-78.vercel.app/api/top-langs/?username=devbexruz&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=3F8EFC&text_color=FFFFFF&langs_count=8" alt="Top Languages" />
 
 <br/>
 
