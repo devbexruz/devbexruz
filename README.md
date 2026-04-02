@@ -3,13 +3,13 @@
 </div>
 <div align="left">
   <a href="https://github.com/devbexruz/math_visual_bot">
-    <img height="130dvw" src="https://github-readme-stats.vercel.app/api/pin/?username=devbexruz&repo=math_visual_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Math Visual AI" />
+    <img height="130dvw" src="https://github-readme-stats-git-master-bexruzs-projects-13eb9bd8.vercel.app/api/pin/?username=devbexruz&repo=math_visual_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Math Visual AI" />
   </a>
   <a href="https://github.com/devbexruz/dangasa_control">
-    <img  height="130dvw" src="https://github-readme-stats.vercel.app/api/pin/?username=devbexruz&repo=dangasa_control&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Dangasa Control" />
+    <img  height="130dvw" src="https://github-readme-stats-git-master-bexruzs-projects-13eb9bd8.vercel.app/api/pin/?username=devbexruz&repo=dangasa_control&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Dangasa Control" />
   </a>
   <a href="https://github.com/devbexruz/labiti_ish_bot">
-    <img  height="130dvw"src="https://github-readme-stats.vercel.app/api/pin/?username=devbexruz&repo=labiti_ish_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Labiti Ish Bot" />
+    <img  height="130dvw"src="https://github-readme-stats-git-master-bexruzs-projects-13eb9bd8.vercel.app/api/pin/?username=devbexruz&repo=labiti_ish_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Labiti Ish Bot" />
   </a>
 </div>
 
