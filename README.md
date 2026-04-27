@@ -11,6 +11,9 @@
   <a href="https://github.com/devbexruz/labiti_ish_bot">
     <img  height="130dvw"src="https://github-readme-stats-dusky-six-78.vercel.app/api/pin/?username=devbexruz&repo=labiti_ish_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Labiti Ish Bot" />
   </a>
+  <a href="https://github.com/devbexruz/dayplan">
+    <img  height="130dvw"src="https://github-readme-stats-dusky-six-78.vercel.app/api/pin/?username=devbexruz&repo=dayplan&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Day Plan" />
+  </a>
 </div>
 
 <br>
