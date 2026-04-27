@@ -1,0 +1,15 @@
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/bin/Debug/net10.0/backend
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/bin/Debug/net10.0/backend.deps.json
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/bin/Debug/net10.0/backend.runtimeconfig.json
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/bin/Debug/net10.0/backend.dll
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/bin/Debug/net10.0/backend.pdb
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.GeneratedMSBuildEditorConfig.editorconfig
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.AssemblyInfoInputs.cache
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.AssemblyInfo.cs
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.csproj.CoreCompileInputs.cache
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.sourcelink.json
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.dll
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/refint/backend.dll
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.pdb
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/backend.genruntimeconfig.cache
+/home/bexruz/Documents/MyProjects/devbexruz/portfolio/backend/obj/Debug/net10.0/ref/backend.dll
