@@ -3,6 +3,7 @@ import Hero from '../components/Hero';
 import AICharacter from '../components/AIChat';
 import Projects from '../components/Projects';
 import AboutSection from '../components/AboutSection';
+import HomeTeachTubeSection from '../components/AboutTeachTube';
 // import { Button } from '../components/ui/button';
 import { BookOpen, Video, Sparkles, ChevronRight } from 'lucide-react';
 
@@ -17,6 +18,11 @@ export default function HomePage() {
       <div className="absolute top-0 -left-48 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" />
       {/* <div className="absolute top-0 -right-48 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse delay-1000" /> */}
 
+
+      <div className="relative z-10">
+        <HomeTeachTubeSection />
+      </div>
+
       <div id="hero" className="relative z-10">
         <Hero />
       </div>
@@ -29,9 +35,9 @@ export default function HomePage() {
         <Projects />
       </div>
 
-      <div className="relative z-10">
+      {/* <div className="relative z-10">
         <AICharacter />
-      </div>
+      </div> */}
 
       {/* Blog va Video preview section - Premium Apple style */}
       <section className="relative z-10 py-28 px-6">

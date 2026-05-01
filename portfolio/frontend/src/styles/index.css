@@ -58,6 +58,13 @@ html {
 @import './tailwind.css';
 @import './theme.css';
 
+/* Kod blokidagi har bir satr uchun */
+code[class*="language-"],
+pre[class*="language-"] {
+  line-height: 1.0 !important; /* Standart 1.5 yaxshi o'qiladi */
+}
 
-
-
+/* Faqat o'sha konteyner ichidagi kod uchun bo'lsa */
+.prose pre code {
+  line-height: 1.0 !important;
+}

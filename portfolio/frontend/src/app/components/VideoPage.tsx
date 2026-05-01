@@ -4,8 +4,9 @@ import {
   ThumbsDown, Share2, Eye, Calendar, Clock, MessageCircle, Youtube, Play
 } from 'lucide-react';
 import { Badge } from './ui/badge';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+// import ReactMarkdown from 'react-markdown';
+// import remarkGfm from 'remark-gfm';
+import MarkdownViewer from './MarkdownViewer';
 
 interface Comment {
   id: string;
@@ -162,16 +163,20 @@ export default function VideoPage({ video, relatedVideos, onVideoSelect }: Video
               </div>
             </div>
 
-            <div className="bg-white/2 rounded-2xl border border-white/5 p-6 hover:bg-white/5 transition-all">
-              <h2 onClick={() => setShowDescription(!showDescription)} className="cursor-pointer text-lg font-semibold mb-4 flex items-center gap-2 border-b border-white/5 pb-3">
-                <MessageCircle className="w-5 h-5 text-purple-400" /> Video haqida
-              </h2>
+            <div className={`${showDescription ? '' : 'h-20 bg-white/2 hover:bg-white/5 border border-white/5 rounded-2xl'} p-2 overflow-hidden transition-all duration-500`}>
+              
+              {!showDescription && (<h2 onClick={() => setShowDescription(!showDescription)} className="p-4 cursor-pointer text-lg font-semibold mb-4 flex items-center gap-2 pb-3">
+                <MessageCircle className="w-5 h-5 text-purple-400" /> Video zohi
+              </h2>)}
               <div className="prose prose-invert prose-sm max-w-none prose-headings:text-white prose-p:text-gray-300 prose-code:text-purple-300 prose-strong:text-purple-400 font-sans">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {/* 3 qator ko'rsatish */}
-                  {showDescription ? video.description : `${video.description.slice(0, 100)} ...`}
-                </ReactMarkdown>
+                <MarkdownViewer content={video.description} />
               </div>
+              {showDescription && (
+                <h2 onClick={() => setShowDescription(!showDescription)} className="cursor-pointer text-lg font-semibold mb-4 flex items-center gap-2 border-t border-white/5 pt-3 mt-6">
+                  <MessageCircle className="w-5 h-5 text-purple-400" />
+                  Video izoini qisqartirish
+                </h2>
+              )}
             </div>
 
             <div className="space-y-8 py-8 border-t border-white/5">
