@@ -2,6 +2,9 @@
   <h3>🚀 My Repositories</h3>
 </div>
 <div align="left">
+  <a href="https://github.com/devbexruz/lanswitch">
+    <img height="130dvw" src="https://github-readme-stats-dusky-six-78.vercel.app/api/pin/?username=devbexruz&repo=lanswitch&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Lanswitch" />
+  </a>
   <a href="https://github.com/devbexruz/math_visual_bot">
     <img height="130dvw" src="https://github-readme-stats-dusky-six-78.vercel.app/api/pin/?username=devbexruz&repo=math_visual_bot&theme=transparent&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9&show_owner=false" alt="Math Visual AI" />
   </a>
@@ -43,7 +46,7 @@
 
 I'm a **Backend & AI/ML Developer** from Uzbekistan 🇺🇿 with a deep passion for building intelligent, high-performance systems. I specialize in **Python ecosystem**, **Large Language Models**, and crafting clean, scalable backend architectures that solve real-world problems.
 
-- 🔭 **Currently working on:** AI-powered backend services with **FastAPI**, **LLM integrations**, and **HuggingFace** pipelines
+- 🔭 **Currently working on:** **Lanswitch** project, AI-powered backend services with **FastAPI**, **LLM integrations**, and **HuggingFace** pipelines
 - 🌱 **Currently learning:** Advanced **PyTorch** model optimization, **LLM fine-tuning**, and **distributed systems**
 - 👯 **Open to collaborate on:** Open-source AI/ML tools, NLP projects, and intelligent automation systems
 - 💬 **Ask me about:** Python, FastAPI, Django, LLM APIs, HuggingFace, Telegram bots, PostgreSQL optimization
@@ -103,53 +106,9 @@ I'm a **Backend & AI/ML Developer** from Uzbekistan 🇺🇿 with a deep passion
 ## 💼 What I Bring to the Table
 
 ```text
-✅ Backend Optimization     — High-performance APIs, query tuning, caching strategies
-✅ API Integration           — RESTful, GraphQL, third-party & internal API design
-✅ AI/ML Engineering         — HuggingFace, Transformers, LLM endpoints, model serving
-✅ Clean Architecture        — OOP, SOLID, Design Patterns, Code Review culture
-✅ Database Expertise        — PostgreSQL optimization, migrations, indexing
-✅ Automation & Scraping     — Telegram bots, web scraping, task automation
-```
-
----
-
-## 📊 GitHub Statistics
-
-<div align="center">
-
-<img height="180em" src="https://github-readme-stats-dusky-six-78.vercel.app/api?username=devbexruz&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=3F8EFC&icon_color=3F8EFC&text_color=FFFFFF&count_private=true" alt="GitHub Stats" />
-<img height="180em" src="https://github-readme-stats-dusky-six-78.vercel.app/api/top-langs/?username=devbexruz&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=3F8EFC&text_color=FFFFFF&langs_count=8" alt="Top Languages" />
-
-<br/>
-
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=devbexruz&theme=tokyonight&hide_border=true&background=0D1117&ring=3F8EFC&fire=3F8EFC&currStreakLabel=3F8EFC" alt="GitHub Streak" />
-
-</div>
-
----
-
-## 📈 Contribution Graph
-
-<div align="center">
-
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=devbexruz&theme=tokyo-night&hide_border=true&bg_color=0D1117&color=3F8EFC&line=3F8EFC&point=FFFFFF" alt="Activity Graph" />
-
-</div>
-
----
-
-<div align="center">
-
-### 🤝 Let's Connect & Build Something Amazing Together!
-
-<p>I'm always open to discussing new projects, innovative ideas, or opportunities to contribute to open-source.</p>
-
-<a href="https://linkedin.com/in/bexruzdeveloper"><img src="https://img.shields.io/badge/Let's_Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/></a>
-<a href="https://t.me/bexruzdeveloper"><img src="https://img.shields.io/badge/Message_Me-26A5E4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram"/></a>
-<a href="mailto:bexruzpy@gmail.com"><img src="https://img.shields.io/badge/Send_Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"/></a>
-
-<br/><br/>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=3F8EFC&height=100&section=footer" width="100%" />
-
-</div>
+✅ Backend Optimization    — High-performance APIs, query tuning, caching strategies
+✅ API Integration         — RESTful, GraphQL, third-party & internal API design
+✅ AI/ML Engineering       — HuggingFace, Transformers, LLM endpoints, model serving
+✅ Clean Architecture      — OOP, SOLID, Design Patterns, Code Review culture
+✅ Database Expertise      — PostgreSQL optimization, migrations, indexing
+✅ Automation & Scraping   — Telegram bots, web scraping, task automation
