@@ -1,5 +1,5 @@
 # Bexruz Boynazarov
-**Senior Systems Architect & Backend Engineer**
+**Backend & AI/ML Engineer**
 
 ---
 
@@ -13,7 +13,7 @@
 
 ## Professional Profile
 
-Results-driven Senior Systems Architect and Backend Engineer with nearly 6 years of experience conceptualizing, building, and scaling high-load infrastructure and decoupled architectures. Core expertise lies in advanced API optimization, infrastructure resilience, and architecting complex, data-intensive server-side applications. Deeply experienced in integrating advanced AI/LLM components, robust RAG systems, and distributed processing into production environments. Proven track record of spearheading technical direction, enforcing code quality through rigorous code reviews, and upholding SOLID principles across distributed engineering teams. Dedicated to designing scalable, maintainable, and highly available architectures that handle intensive traffic while ensuring optimal latency.
+Results-driven Backend and AI/ML Engineer with strong practical experience in developing, optimizing, and scaling server-side applications and intelligent automation systems. Core expertise lies in building high-performance RESTful APIs, implementing robust database structures, and integrating modern AI/LLM tools into production environments. Proficient in applying clean code principles, writing maintainable asynchronous code, and collaborating effectively within engineering teams. Dedicated to designing reliable, efficient backends and continuously expanding technical skills in distributed systems and advanced machine learning workflows.
 
 ---
 
@@ -21,51 +21,56 @@ Results-driven Senior Systems Architect and Backend Engineer with nearly 6 years
 
 | Category | Technologies |
 |---|---|
-| **Architecture & Practices** | Scalability, Decoupled Architecture, Infrastructure Resilience, Microservices, SOLID, Code Review |
-| **Backend Frameworks** | FastAPI (Expert), Django, Django REST Framework, Flask |
-| **Databases** | PostgreSQL (Optimization & Advanced Queries), Redis |
-| **AI/ML & Integrations** | HuggingFace, PyTorch, Transformers, OpenAI API, RAG systems |
+| **Architecture & Practices** | Clean Code, RESTful APIs, Microservices basics, Git workflows |
+| **Backend Frameworks** | FastAPI (Advanced), Django, Django REST Framework, Flask |
+| **Databases** | PostgreSQL (Query Optimization & Indexing), Redis, SQLite, MySQL |
+| **AI/ML & Integrations** | HuggingFace, PyTorch, Transformers, OpenAI API, LangChain, RAG systems |
 | **Web Scraping** | BeautifulSoup, Selenium |
 | **Real-Time & Async** | Celery, WebSockets, asyncio, Redis (Message broker) |
 | **Programming Languages** | Python, SQL, JavaScript/TypeScript, Dart, C# |
 | **Frontend & Mobile** | Flutter, Dart, React (working knowledge), HTML/CSS |
-| **DevOps & Infrastructure** | Docker, Docker Compose, Nginx, Gunicorn, Linux |
+| **DevOps & Tools** | Docker, Docker Compose, Nginx, Gunicorn, Linux |
 
 ---
 
 ## Professional Experience
 
-### Independent Software Architect
-**2020 — Present** · ~6 years
+### Backend & AI/ML Developer
+**2020 — Present**
 
-Led the architectural design and implementation of highly scalable infrastructure and robust backend services across various domains. Championed engineering best practices, emphasizing SOLID principles and comprehensive code reviews to ensure long-term code maintainability and system resilience in team environments.
-
----
-
-#### 🔹 NoreStyle Marketplace — High-Load E-Commerce Platform
-
-- **Architecture Design:** Designed a decoupled architecture for a high-traffic e-commerce platform, ensuring seamless scalability and fault tolerance during peak loads.
-- **API & Database Optimization:** Engineered highly optimized RESTful APIs and performed advanced PostgreSQL optimization (index strategies, query refactoring, schema normalization), achieving a 40% latency reduction in critical operations.
-- **Asynchronous Processing:** Implemented resilient background task pipelines utilizing Celery and Redis to handle complex asynchronous operations without blocking the main event loop.
-- **Code Quality & Teamwork:** Enforced strict adherence to SOLID principles and conducted extensive code reviews to maintain high standards of code quality and facilitate efficient team collaboration.
-- **Infrastructure Resilience:** Deployed containerized environments via Docker, orchestrating reliable deployments and maintaining high availability across various services.
+Designed and developed scalable backend services, RESTful APIs, and intelligent automation systems across multiple independent projects. Focused on performance tuning, asynchronous processing, and smooth third-party AI/ML model integration.
 
 ---
 
-#### 🔹 Math Visual AI Bot — Intelligent Diagnostic & Processing Application
+#### 🔹 Lanswitch — Synchronized Multi-Dubbing Video Platform
 
-- **AI/LLM Architecture:** Architected an AI-driven backend utilizing FastAPI (Expert) to efficiently handle concurrent mathematical analysis requests and integrate complex workflows.
-- **Model Integration:** Seamlessly integrated advanced AI capabilities using OpenAI API, open-source LLMs, and RAG systems to deliver intelligent, context-aware processing.
-- **Performance Tuning:** Leveraged asynchronous processing (asyncio) to maintain optimal throughput and low latency when querying dynamic ML models.
-- **Data Pipeline Engineering:** Designed scalable data processing pipelines orchestrating computations and visual rendering (OpenCV, matplotlib) under operational load.
+- **Real-Time Architecture:** Developed backend infrastructure for synchronized media streaming, managing concurrent real-time audio and subtitle data flows.
+- **Data & Semantic Processing:** Integrated intelligent text processing and analysis pipelines to handle dynamic subtitle synchronization efficiently.
+- **Performance Optimization:** Implemented asynchronous backend endpoints to ensure low latency and reliable handling under multiple user requests.
 
 ---
 
-#### 🔹 Scalable Enterprise Solutions & System Integration
+#### 🔹 NoreStyle Marketplace — E-Commerce Backend
 
-- **Data Scraping & Aggregation:** Developed reliable, high-throughput web scraping solutions using BeautifulSoup and Selenium to support data-heavy analytics engines.
-- **Decoupled Architecture Integration:** Built robust, strictly documented REST and WebSocket APIs serving diverse clients including cross-platform mobile apps (Flutter) and hardware IoT modules.
-- **System Modernization:** Acted as a driving force in refactoring legacy codebases into modern architecture patterns, improving deployment lifecycles and infrastructure resilience.
+- **API & Service Development:** Built robust RESTful APIs for a high-traffic e-commerce platform ensuring smooth client-server communication.
+- **Database Management:** Performed PostgreSQL query optimization, indexing, and schema adjustments to improve response times.
+- **Asynchronous Tasks:** Configured Celery and Redis pipelines for background tasks and notification handling without blocking the main event loop.
+- **Containerization:** Deployed and managed containerized services using Docker and Docker Compose for consistent development and production environments.
+
+---
+
+#### 🔹 Math Visual AI Bot — Intelligent Processing Application
+
+- **FastAPI Backend:** Developed a high-performance asynchronous backend using FastAPI to handle concurrent user requests and computation tasks.
+- **AI Integration:** Integrated OpenAI API and custom AI workflows to provide automated, context-aware mathematical analysis and processing.
+- **Media Processing:** Built automated data pipelines coordinating complex computations and visual rendering using libraries like OpenCV.
+
+---
+
+#### 🔹 Automation & Utility Systems
+
+- **Web Scraping:** Engineered high-throughput data scraping tools using BeautifulSoup and Selenium to support data collection pipelines.
+- **Telegram Bots & Integration:** Developed advanced automated Telegram bots (using Aiogram) integrated with external databases and APIs.
 
 ---
 
@@ -77,5 +82,5 @@ Led the architectural design and implementation of highly scalable infrastructur
 
 ## Additional Information
 
-- **Languages:** English (Technical reading proficiency), Uzbek (Native).
-- **Availability:** Full-time, on-site / hybrid.
+- **Languages:** English (Technical reading & proficiency), Uzbek (Native).
+- **Availability:** Full-time, remote / hybrid / on-site.
