@@ -30,6 +30,8 @@ import {
   AuthUser
 } from "@/lib/api";
 
+const GOOGLE_CLIENT_ID = "242814711793-hnu6luhvlao53brvojoc9q9b4uqlhkaf.apps.googleusercontent.com";
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -104,7 +106,7 @@ export default function AuthModal({
       if (typeof window !== "undefined" && (window as any).google?.accounts?.id) {
         try {
           (window as any).google.accounts.id.initialize({
-            client_id: "655373695851-s2s11nbe9b27ssdloc3mc5rg8scfejb6.apps.googleusercontent.com",
+            client_id: GOOGLE_CLIENT_ID,
             callback: async (response: any) => {
               if (response.credential) {
                 try {
@@ -178,7 +180,7 @@ export default function AuthModal({
     try {
       if (typeof window !== "undefined" && (window as any).google?.accounts?.oauth2) {
         const client = (window as any).google.accounts.oauth2.initTokenClient({
-          client_id: "655373695851-s2s11nbe9b27ssdloc3mc5rg8scfejb6.apps.googleusercontent.com",
+          client_id: GOOGLE_CLIENT_ID,
           scope: "email profile openid",
           callback: async (tokenResponse: any) => {
             if (tokenResponse?.error) {

@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_USERNAME: str = "developerlogicbot"
     TELEGRAM_ADMIN_CHAT_ID: Optional[str] = None
     
+    # Google OAuth 2.0 Credentials (loaded from .env)
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    
     # SMTP / Email Configuration
     SMTP_HOST: Optional[str] = "smtp.gmail.com"
     SMTP_PORT: int = 587
