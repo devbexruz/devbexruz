@@ -151,6 +151,20 @@ async def init_database():
             await conn.execute(text("ALTER TABLE users ADD COLUMN provider_id VARCHAR(255)"))
         except Exception:
             pass
+        try:
+            await conn.execute(text("ALTER TABLE problems ADD COLUMN post_type VARCHAR(50) DEFAULT 'question'"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE problems ADD COLUMN is_flagged BOOLEAN DEFAULT FALSE"))
+            await conn.execute(text("ALTER TABLE problems ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE solutions ADD COLUMN is_flagged BOOLEAN DEFAULT FALSE"))
+            await conn.execute(text("ALTER TABLE solutions ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE"))
+        except Exception:
+            pass
 
     async with AsyncSessionLocal() as session:
         # 1. Seed / Update Admin User

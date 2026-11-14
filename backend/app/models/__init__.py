@@ -4,7 +4,7 @@ from typing import List, Optional
 from sqlalchemy import (
     Column, String, Text, Boolean, Integer, DateTime, ForeignKey, Table, Enum
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from app.core.database import Base
 
 def generate_uuid() -> str:
@@ -65,6 +65,7 @@ class Problem(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     author_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    post_type = Column(String(50), default="question") # "question" or "tutorial"
     title = Column(String(255), nullable=False, index=True)
     slug = Column(String(255), unique=True, index=True, nullable=False)
     content_markdown = Column(Text, nullable=False)
@@ -73,6 +74,10 @@ class Problem(Base):
     upvotes_count = Column(Integer, default=0)
     tags = Column(String(255), default="") # Comma-separated tags e.g. "FastAPI, PostgreSQL, Async"
     
+    # Moderation fields
+    is_flagged = Column(Boolean, default=False)
+    is_hidden = Column(Boolean, default=False)
+
     # Advanced SEO Meta fields (Google & Yandex optimized)
     meta_title = Column(String(255), nullable=True)
     meta_description = Column(Text, nullable=True)
@@ -85,6 +90,7 @@ class Problem(Base):
 
     author = relationship("User", back_populates="problems")
     solutions = relationship("Solution", back_populates="problem", cascade="all, delete-orphan", order_by="desc(Solution.is_accepted), desc(Solution.upvotes_count)")
+    comments = relationship("Comment", back_populates="problem", cascade="all, delete-orphan", foreign_keys="Comment.problem_id")
 
 class Solution(Base):
     __tablename__ = "solutions"
@@ -96,10 +102,50 @@ class Solution(Base):
     content_markdown = Column(Text, nullable=False)
     is_accepted = Column(Boolean, default=False)
     upvotes_count = Column(Integer, default=0)
+    is_flagged = Column(Boolean, default=False)
+    is_hidden = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     problem = relationship("Problem", back_populates="solutions")
     author = relationship("User", back_populates="solutions")
+    comments = relationship("Comment", back_populates="solution", cascade="all, delete-orphan", foreign_keys="Comment.solution_id")
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    problem_id = Column(String(36), ForeignKey("problems.id"), nullable=True)
+    solution_id = Column(String(36), ForeignKey("solutions.id"), nullable=True)
+    parent_id = Column(String(36), ForeignKey("comments.id"), nullable=True)
+    paragraph_index = Column(Integer, nullable=True) # None = general comment, >= 0 = inline paragraph comment
+    author_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    author_name = Column(String(255), default="Dasturchi")
+    content = Column(Text, nullable=False)
+    is_flagged = Column(Boolean, default=False)
+    is_hidden = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    problem = relationship("Problem", back_populates="comments", foreign_keys=[problem_id])
+    solution = relationship("Solution", back_populates="comments", foreign_keys=[solution_id])
+    author = relationship("User")
+    replies = relationship("Comment", backref=backref("parent", remote_side=[id]), cascade="all, delete-orphan")
+
+class Report(Base):
+    __tablename__ = "reports"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    reporter_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    reporter_name = Column(String(255), default="Foydalanuvchi")
+    target_type = Column(String(50), nullable=False) # "problem", "solution", "comment"
+    target_id = Column(String(36), nullable=False)
+    reason = Column(String(255), nullable=False) # "spam", "harassment", "offensive", "incorrect", "other"
+    details = Column(Text, nullable=True)
+    status = Column(String(50), default="pending") # "pending", "restored", "deleted"
+    reviewed_by = Column(String(255), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    reporter = relationship("User")
 
 class ServiceItem(Base):
     __tablename__ = "service_items"

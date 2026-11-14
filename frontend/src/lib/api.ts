@@ -46,14 +46,51 @@ export interface ProjectItem {
   order_index: number;
 }
 
+export interface CommentItem {
+  id: string;
+  content: string;
+  author_name?: string;
+  author_id?: string;
+  paragraph_index?: number | null;
+  problem_id?: string | null;
+  solution_id?: string | null;
+  parent_id?: string | null;
+  is_flagged?: boolean;
+  is_hidden?: boolean;
+  created_at: string;
+  replies?: CommentItem[];
+}
+
+export interface ReportItem {
+  id: string;
+  reporter_id?: string;
+  reporter_name: string;
+  target_type: "problem" | "solution" | "comment";
+  target_id: string;
+  reason: string;
+  details?: string;
+  status: "pending" | "restored" | "deleted";
+  reviewed_by?: string;
+  reviewed_at?: string;
+  created_at: string;
+  target_content?: string;
+  target_author?: string;
+  problem_title?: string;
+  parent_content?: string;
+}
+
 export interface SolutionItem {
   id: string;
   problem_id: string;
   author_name: string;
+  author_id?: string;
   content_markdown: string;
   is_accepted: boolean;
   upvotes_count: number;
+  is_flagged?: boolean;
+  is_hidden?: boolean;
   created_at: string;
+  comments?: CommentItem[];
 }
 
 export interface ProblemItem {
@@ -63,8 +100,11 @@ export interface ProblemItem {
   content_markdown: string;
   tags?: string;
   status: string;
+  post_type?: string;
   view_count: number;
   upvotes_count: number;
+  is_flagged?: boolean;
+  is_hidden?: boolean;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
@@ -75,6 +115,7 @@ export interface ProblemItem {
   created_at: string;
   updated_at: string;
   solutions: SolutionItem[];
+  comments?: CommentItem[];
   author?: { id: string; username: string; full_name?: string };
 }
 
@@ -183,10 +224,16 @@ export async function createProblem(data: {
   content_markdown: string;
   tags?: string;
   author_name?: string;
+  post_type?: string;
 }): Promise<ProblemItem> {
+  const session = getAuthSession();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (session.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+  }
   const res = await fetch(`${API_BASE}/problems`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Create problem failed");
@@ -197,9 +244,14 @@ export async function addSolution(problemId: string, data: {
   author_name: string;
   content_markdown: string;
 }): Promise<SolutionItem> {
+  const session = getAuthSession();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (session.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+  }
   const res = await fetch(`${API_BASE}/problems/${problemId}/solutions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Add solution failed");
@@ -556,3 +608,127 @@ export async function updateUserRole(role: "business" | "developer"): Promise<Au
   }
   return updatedUser;
 }
+
+// --- Comments API ---
+export async function fetchComments(params: {
+  problem_id?: string;
+  solution_id?: string;
+  paragraph_index?: number;
+}): Promise<CommentItem[]> {
+  const query = new URLSearchParams();
+  if (params.problem_id) query.append("problem_id", params.problem_id);
+  if (params.solution_id) query.append("solution_id", params.solution_id);
+  if (params.paragraph_index !== undefined && params.paragraph_index !== null) {
+    query.append("paragraph_index", params.paragraph_index.toString());
+  }
+
+  const res = await fetch(`${API_BASE}/comments?${query.toString()}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Sharhlarni yuklashda xatolik");
+  return await res.json();
+}
+
+export async function createComment(data: {
+  content: string;
+  problem_id?: string;
+  solution_id?: string;
+  parent_id?: string;
+  paragraph_index?: number | null;
+  author_name?: string;
+}): Promise<CommentItem> {
+  const session = getAuthSession();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (session.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+  }
+  const res = await fetch(`${API_BASE}/comments`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Izoh yozishda xatolik" }));
+    throw new Error(err.detail || "Izoh yozishda xatolik yuz berdi");
+  }
+  return await res.json();
+}
+
+// --- Reports & Moderation API ---
+export async function submitReport(data: {
+  target_type: "problem" | "solution" | "comment";
+  target_id: string;
+  reason: string;
+  details?: string;
+  reporter_name?: string;
+}): Promise<{ success: boolean; message: string; report_id: string }> {
+  const session = getAuthSession();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (session.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+  }
+  const res = await fetch(`${API_BASE}/reports`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Shikoyat yuborishda xatolik" }));
+    throw new Error(err.detail || "Shikoyat yuborishda xatolik yuz berdi");
+  }
+  return await res.json();
+}
+
+export async function fetchAdminReports(statusFilter?: string): Promise<ReportItem[]> {
+  const query = statusFilter ? `?status_filter=${statusFilter}` : "";
+  const res = await fetch(`${API_BASE}/reports/admin/reports${query}`, {
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error("Shikoyatlarni yuklashda xatolik (Admin ruxsati zarur)");
+  }
+  return await res.json();
+}
+
+export async function reviewAdminReport(
+  reportId: string,
+  action: "restore" | "delete",
+  adminNotes?: string
+): Promise<ReportItem> {
+  const res = await fetch(`${API_BASE}/reports/admin/reports/${reportId}/review`, {
+    method: "POST",
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action, admin_notes: adminNotes }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Shikoyatni ko'rib chiqishda xatolik" }));
+    throw new Error(err.detail || "Amalni bajarib bo'lmadi");
+  }
+  return await res.json();
+}
+
+// --- Image Upload API (Max 1024px with WebP optimization) ---
+export async function uploadImage(file: File): Promise<{
+  success: boolean;
+  url: string;
+  width: number;
+  height: number;
+  filename: string;
+}> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_BASE}/upload/image`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Rasm yuklashda xatolik" }));
+    throw new Error(err.detail || "Rasm yuklashda xatolik yuz berdi");
+  }
+  return await res.json();
+}
+

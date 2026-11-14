@@ -72,10 +72,10 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Asosiy" },
-    { href: "/#estimator", label: "AI Smeta" },
+    { href: "/dashboard/developer", label: "Dasturchi Q&A" },
+    { href: "/dashboard/business", label: "Biznes Paneli" },
     { href: "/#services", label: "Xizmatlar" },
-    { href: "/problems", label: "Muammolar" },
-    { href: "/about", label: "Muhandis" },
+    { href: "/about", label: "Muhandis & Blog" },
   ];
 
   return (

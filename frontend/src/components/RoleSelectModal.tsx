@@ -40,6 +40,7 @@ export default function RoleSelectModal({ isOpen, onClose, onRoleSelected }: Rol
         onRoleSelected(selectedRole);
       }
       onClose();
+      window.location.href = selectedRole === "business" ? "/dashboard/business" : "/dashboard/developer";
     } finally {
       setLoading(false);
     }

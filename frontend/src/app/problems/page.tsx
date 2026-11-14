@@ -1,4 +1,4 @@
-import ProblemsFeed from "@/components/ProblemsFeed";
+import ProblemsClientWrapper from "./ProblemsClientWrapper";
 import { fetchProblems } from "@/lib/api";
 import { Metadata } from "next";
 
@@ -15,8 +15,8 @@ export default async function ProblemsPage() {
   const problems = await fetchProblems();
 
   return (
-    <div className="bg-white min-h-screen">
-      <ProblemsFeed initialProblems={problems} />
+    <div className="bg-slate-50 min-h-screen">
+      <ProblemsClientWrapper initialProblems={problems} />
     </div>
   );
 }

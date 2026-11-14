@@ -8,7 +8,7 @@ import uuid
 import re
 
 from app.core.database import get_db
-from app.models import Problem, Solution, User, LeadInquiry
+from app.models import Problem, Solution, User, LeadInquiry, Comment
 from app.schemas import (
     ProblemCreate, ProblemResponse, SolutionCreate, SolutionResponse,
     ProblemAIPolishRequest, ProblemAIPolishResponse
@@ -54,16 +54,24 @@ def enrich_seo_fields(problem: Problem) -> ProblemResponse:
 async def list_problems(
     tag: Optional[str] = None,
     q: Optional[str] = None,
+    post_type: Optional[str] = None,
     sort_by: str = Query("latest", description="latest, popular, or unsolved"),
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db)
 ):
-    query = select(Problem).options(
-        selectinload(Problem.solutions),
-        selectinload(Problem.author)
+    query = (
+        select(Problem)
+        .options(
+            selectinload(Problem.solutions),
+            selectinload(Problem.comments),
+            selectinload(Problem.author)
+        )
+        .where(Problem.is_hidden == False)
     )
 
+    if post_type:
+        query = query.where(Problem.post_type == post_type)
     if tag:
         query = query.where(Problem.tags.ilike(f"%{tag}%"))
     if q:
@@ -78,6 +86,11 @@ async def list_problems(
     query = query.limit(limit).offset(offset)
     result = await db.execute(query)
     problems = result.scalars().all()
+
+    # Filter out hidden solutions & comments from responses
+    for p in problems:
+        p.solutions = [s for s in p.solutions if not s.is_hidden]
+        p.comments = [c for c in p.comments if not c.is_hidden]
 
     return [enrich_seo_fields(p) for p in problems]
 
@@ -160,9 +173,13 @@ async def ai_polish_problem(req: ProblemAIPolishRequest, db: AsyncSession = Depe
 async def get_problem(slug_or_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Problem).options(
-            selectinload(Problem.solutions),
+            selectinload(Problem.solutions).selectinload(Solution.comments),
+            selectinload(Problem.comments),
             selectinload(Problem.author)
-        ).where((Problem.slug == slug_or_id) | (Problem.id == slug_or_id))
+        ).where(
+            ((Problem.slug == slug_or_id) | (Problem.id == slug_or_id)),
+            Problem.is_hidden == False
+        )
     )
     problem = result.scalars().first()
     if not problem:
@@ -172,6 +189,11 @@ async def get_problem(slug_or_id: str, db: AsyncSession = Depends(get_db)):
     problem.view_count += 1
     await db.commit()
     await db.refresh(problem)
+
+    problem.solutions = [s for s in problem.solutions if not s.is_hidden]
+    for s in problem.solutions:
+        s.comments = [c for c in s.comments if not c.is_hidden]
+    problem.comments = [c for c in problem.comments if not c.is_hidden]
 
     return enrich_seo_fields(problem)
 
@@ -185,6 +207,7 @@ async def create_problem(problem_in: ProblemCreate, db: AsyncSession = Depends(g
     new_problem = Problem(
         title=problem_in.title,
         slug=slug,
+        post_type=problem_in.post_type or "question",
         content_markdown=problem_in.content_markdown,
         tags=problem_in.tags or "",
         meta_title=fallback_seo["meta_title"],
@@ -200,6 +223,7 @@ async def create_problem(problem_in: ProblemCreate, db: AsyncSession = Depends(g
     result = await db.execute(
         select(Problem).options(
             selectinload(Problem.solutions),
+            selectinload(Problem.comments),
             selectinload(Problem.author)
         ).where(Problem.id == new_problem.id)
     )

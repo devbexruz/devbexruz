@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MessageSquare, ThumbsUp, Eye, CheckCircle2, Sparkles, Send, ArrowLeft, Globe, Search, ShieldCheck } from "lucide-react";
+import { MessageSquare, ThumbsUp, Eye, CheckCircle2, Sparkles, Send, ArrowLeft, Globe, Search, ShieldCheck, ShieldAlert } from "lucide-react";
 import { ProblemItem, addSolution, upvoteProblem, upvoteSolution } from "@/lib/api";
+import NotionLikeEditor from "@/components/NotionLikeEditor";
+import ReportModal from "@/components/ReportModal";
 
 interface Props {
   initialProblem: ProblemItem;
@@ -15,6 +17,20 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
   const [solutionContent, setSolutionContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [activeSerpTab, setActiveSerpTab] = useState<"google" | "yandex">("google");
+
+  // Report modal state
+  const [reportData, setReportData] = useState<{
+    isOpen: boolean;
+    targetType: "problem" | "solution" | "comment";
+    targetId: string;
+    itemSnippet: string;
+  }>({
+    isOpen: false,
+    targetType: "problem",
+    targetId: "",
+    itemSnippet: "",
+  });
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   const handleUpvoteProblem = async () => {
     try {
@@ -64,8 +80,32 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
     }
   };
 
+  const handleReportSuccess = (targetType: "problem" | "solution" | "comment", targetId: string) => {
+    setHiddenIds(prev => new Set(prev).add(targetId));
+    if (targetType === "problem") {
+      alert("Ushbu mavzu moderatsiyaga yuborildi va yashirildi.");
+      window.location.href = "/dashboard/developer";
+    } else if (targetType === "solution") {
+      setProblem(prev => ({
+        ...prev,
+        solutions: prev.solutions.filter(s => s.id !== targetId)
+      }));
+    }
+  };
+
+  const triggerReport = (type: "problem" | "solution" | "comment", id: string, snippet: string) => {
+    setReportData({
+      isOpen: true,
+      targetType: type,
+      targetId: id,
+      itemSnippet: snippet.slice(0, 100),
+    });
+  };
+
   const metaTitle = problem.effective_meta_title || `${problem.title} | DevBexruz Q&A`;
   const metaDesc = problem.effective_meta_description || problem.content_markdown.replace(/[#*`]/g, "").slice(0, 160);
+
+  const visibleSolutions = (problem.solutions || []).filter(s => !hiddenIds.has(s.id) && !s.is_hidden);
 
   return (
     <div className="bg-slate-50 min-h-screen py-10">
@@ -75,7 +115,7 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
         <div className="flex items-center gap-2 text-xs text-slate-500 mb-6">
           <Link href="/" className="hover:text-blue-600 transition">Bosh Sahifa</Link>
           <span>/</span>
-          <Link href="/problems" className="hover:text-blue-600 transition">Muammolar (Q&A)</Link>
+          <Link href="/dashboard/developer" className="hover:text-blue-600 transition">Dasturchi Q&A</Link>
           <span>/</span>
           <span className="text-slate-900 font-semibold truncate max-w-xs">{problem.title}</span>
         </div>
@@ -109,9 +149,20 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
               ))}
             </div>
 
-            <span className="text-xs text-slate-400">
-              Sana: {new Date(problem.created_at).toLocaleDateString("uz-UZ")}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">
+                Sana: {new Date(problem.created_at).toLocaleDateString("uz-UZ")}
+              </span>
+              <button
+                type="button"
+                onClick={() => triggerReport("problem", problem.id, problem.title)}
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded transition"
+                title="Shikoyat qilish (Shu zahoti yashiriladi)"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-red-500" />
+                <span>Shikoyat</span>
+              </button>
+            </div>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight mb-6">
@@ -130,7 +181,7 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
                 <Eye className="w-4 h-4 text-slate-400" /> {problem.view_count} ko'rildi
               </span>
               <span className="flex items-center gap-1 font-medium">
-                <MessageSquare className="w-4 h-4 text-slate-400" /> {problem.solutions?.length || 0} ta yechim
+                <MessageSquare className="w-4 h-4 text-slate-400" /> {visibleSolutions.length} ta yechim
               </span>
             </div>
 
@@ -144,18 +195,20 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
           </div>
         </article>
 
-
         {/* Solutions List */}
         <section className="space-y-6 mb-10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-blue-600" />
-              Berilgan Yechimlar ({problem.solutions?.length || 0})
+              Berilgan Yechimlar ({visibleSolutions.length})
             </h2>
+            <span className="text-xs text-slate-400">
+              Stack Overflow qoidasi bo'yicha saralangan
+            </span>
           </div>
 
-          {problem.solutions && problem.solutions.length > 0 ? (
-            problem.solutions.map((sol) => (
+          {visibleSolutions.length > 0 ? (
+            visibleSolutions.map((sol) => (
               <div
                 key={sol.id}
                 className={`rounded-xl p-6 transition ${
@@ -174,13 +227,18 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4 text-xs text-slate-500">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900">{sol.author_name}</span>
-                    {sol.author_name.includes("Bexruz") && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-extrabold uppercase">
-                        Architect
-                      </span>
-                    )}
                   </div>
-                  <span>{new Date(sol.created_at).toLocaleDateString("uz-UZ")}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{new Date(sol.created_at).toLocaleDateString("uz-UZ")}</span>
+                    <button
+                      type="button"
+                      onClick={() => triggerReport("solution", sol.id, sol.content_markdown)}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition"
+                      title="Shikoyat qilish"
+                    >
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-3 whitespace-pre-wrap mb-4 font-mono">
@@ -205,12 +263,15 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
           )}
         </section>
 
-        {/* Add Solution Form */}
+        {/* Add Solution Form (with Notion-Style Editor) */}
         <div className="bg-white rounded-xl border border-slate-200 p-6 sm:p-7 shadow-xs">
-          <h3 className="font-bold text-slate-900 text-sm mb-4 flex items-center gap-2">
+          <h3 className="font-bold text-slate-900 text-sm mb-1 flex items-center gap-2">
             <Send className="w-4 h-4 text-blue-600" />
-            O'z Yechimingizni Taqdim Eting:
+            O'z Yechimingizni Taqdim Eting (Notion Uslubi):
           </h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Klaviatura kombinatsiyalari (Ctrl+B, Ctrl+I, Ctrl+U), Notion teglari (###, [], -) va 1024px foizli rasmlar qo'llab-quvvatlanadi.
+          </p>
 
           <form onSubmit={handleAddSolution} className="space-y-4 text-xs">
             <div>
@@ -228,15 +289,13 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
 
             <div>
               <label className="block font-bold text-slate-700 mb-1">
-                Yechim Matni & Kod Namunasi:
+                Yechim Matni &amp; Kod Namunasi:
               </label>
-              <textarea
-                rows={5}
-                required
+              <NotionLikeEditor
                 value={solutionContent}
-                onChange={(e) => setSolutionContent(e.target.value)}
-                placeholder="Qanday qilib bu muammoni to'g'ri hal qilish mumkin? Qadamlar va kod namunasi..."
-                className="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                onChange={setSolutionContent}
+                placeholder="Qanday qilib bu muammoni to'g'ri hal qilish mumkin? Qadamlar, kod namunasi va rasmlar..."
+                minHeight="200px"
               />
             </div>
 
@@ -253,6 +312,16 @@ export default function ProblemDetailClient({ initialProblem }: Props) {
         </div>
 
       </div>
+
+      {/* Shikoyat Modal */}
+      <ReportModal
+        isOpen={reportData.isOpen}
+        onClose={() => setReportData(prev => ({ ...prev, isOpen: false }))}
+        targetType={reportData.targetType}
+        targetId={reportData.targetId}
+        itemTitleOrSnippet={reportData.itemSnippet}
+        onReportSuccess={handleReportSuccess}
+      />
     </div>
   );
 }

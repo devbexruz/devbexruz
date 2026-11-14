@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, Sparkles, Newspaper, LogOut, ArrowLeft, LayoutDashboard, Globe } from "lucide-react";
+import { ShieldCheck, Sparkles, Newspaper, LogOut, ArrowLeft, LayoutDashboard, Globe, ShieldAlert } from "lucide-react";
 import { getApiBase } from "@/lib/api";
 
 interface Props {
@@ -61,6 +61,7 @@ export default function AdminLayout({ children }: Props) {
 
   const tabs = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/moderation", label: "Shikoyatlar (Moderatsiya)", icon: ShieldAlert },
     { href: "/admin/seo", label: "AI SEO Boshqaruvi", icon: Sparkles },
     { href: "/admin/blogs", label: "Blog & Yangiliklar", icon: Newspaper },
   ];

@@ -77,6 +77,63 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user: UserResponse
 
+# --- Comment Schemas ---
+class CommentBase(BaseModel):
+    content: str
+    author_name: Optional[str] = "Dasturchi"
+    paragraph_index: Optional[int] = None
+
+class CommentCreate(CommentBase):
+    problem_id: Optional[str] = None
+    solution_id: Optional[str] = None
+    parent_id: Optional[str] = None
+
+class CommentResponse(CommentBase):
+    id: str
+    problem_id: Optional[str] = None
+    solution_id: Optional[str] = None
+    parent_id: Optional[str] = None
+    author_id: Optional[str] = None
+    is_flagged: bool = False
+    is_hidden: bool = False
+    created_at: datetime
+    replies: List['CommentResponse'] = []
+
+    class Config:
+        from_attributes = True
+
+# --- Report Schemas ---
+class ReportCreate(BaseModel):
+    target_type: str # "problem", "solution", "comment"
+    target_id: str
+    reason: str # "spam", "harassment", "offensive", "incorrect", "other"
+    details: Optional[str] = None
+    reporter_name: Optional[str] = "Foydalanuvchi"
+
+class ReportReviewRequest(BaseModel):
+    action: str # "restore" or "delete"
+    admin_notes: Optional[str] = None
+
+class ReportResponse(BaseModel):
+    id: str
+    reporter_id: Optional[str] = None
+    reporter_name: str
+    target_type: str
+    target_id: str
+    reason: str
+    details: Optional[str] = None
+    status: str # "pending", "restored", "deleted"
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    created_at: datetime
+    target_content: Optional[str] = None
+    target_author: Optional[str] = None
+    problem_title: Optional[str] = None
+    parent_content: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 # --- Solution Schemas ---
 class SolutionBase(BaseModel):
     content_markdown: str
@@ -91,16 +148,20 @@ class SolutionResponse(SolutionBase):
     author_id: Optional[str] = None
     is_accepted: bool = False
     upvotes_count: int = 0
+    is_flagged: bool = False
+    is_hidden: bool = False
     created_at: datetime
+    comments: List[CommentResponse] = []
 
     class Config:
         from_attributes = True
 
-# --- Problem Schemas (with SEO fields) ---
+# --- Problem Schemas (with SEO & Moderation fields) ---
 class ProblemBase(BaseModel):
     title: str
     content_markdown: str
     tags: Optional[str] = ""
+    post_type: Optional[str] = "question" # "question" or "tutorial"
 
 class ProblemCreate(ProblemBase):
     author_name: Optional[str] = "Dasturchi"
@@ -110,6 +171,7 @@ class ProblemUpdate(BaseModel):
     content_markdown: Optional[str] = None
     tags: Optional[str] = None
     status: Optional[str] = None
+    post_type: Optional[str] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
     meta_keywords: Optional[str] = None
@@ -118,8 +180,11 @@ class ProblemResponse(ProblemBase):
     id: str
     slug: str
     status: str
+    post_type: str = "question"
     view_count: int
     upvotes_count: int
+    is_flagged: bool = False
+    is_hidden: bool = False
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
     meta_keywords: Optional[str] = None
@@ -128,6 +193,7 @@ class ProblemResponse(ProblemBase):
     created_at: datetime
     updated_at: datetime
     solutions: List[SolutionResponse] = []
+    comments: List[CommentResponse] = []
     author: Optional[UserResponse] = None
 
     # Fallback SEO helpers
