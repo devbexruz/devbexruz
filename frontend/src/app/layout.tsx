@@ -7,14 +7,23 @@ import TopProgressBar from "@/components/TopProgressBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DevBexruz — Product Engineer, Systems Architect & AI Platform",
+  title: "DeveloperLogic — Product Engineer, Systems Architect & AI Platform",
   description: "Bexruz Boynazarov — Yuqori yuklamali backend tizimlar, AI orkestratsiyasi, dasturchilar hamjamiyati va biznes avtomatlashtirish platformasi.",
-  keywords: ["Bexruz Boynazarov", "Systems Architect", "Backend Engineer", "FastAPI", "PostgreSQL", "Next.js", "AI Estimator", "O'zMU", "Dasturchilar forumi"],
+  keywords: ["Bexruz Boynazarov", "DeveloperLogic", "Systems Architect", "Backend Engineer", "FastAPI", "PostgreSQL", "Next.js", "AI Estimator", "O'zMU", "Dasturchilar forumi"],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   authors: [{ name: "Bexruz Boynazarov", url: "https://github.com/devbexruz" }],
   openGraph: {
-    title: "DevBexruz — Systems Architect & Developer Community",
+    title: "DeveloperLogic — Systems Architect & Developer Community",
     description: "Biznesingiz uchun AI smeta va arxitektura, dasturchilar uchun esa real backend muammolar yechimi.",
-    siteName: "DevBexruz",
+    siteName: "DeveloperLogic",
     locale: "uz_UZ",
     type: "website",
   },

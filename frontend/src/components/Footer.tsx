@@ -9,11 +9,11 @@ export default function Footer() {
           
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-slate-900 text-amber-400 flex items-center justify-center font-bold">
-                <Terminal className="w-4 h-4 text-amber-400" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg overflow-hidden shadow-xs shrink-0 border border-slate-800/20 bg-[#0A0F1D]">
+                <img src="/icon.svg" alt="DeveloperLogic" className="w-full h-full object-cover" />
               </div>
-              <span className="font-bold text-slate-900 text-sm tracking-tight">DevBexruz Platform</span>
+              <span className="font-bold text-slate-900 text-sm tracking-tight">DeveloperLogic Platform</span>
             </div>
             <p className="text-slate-500 leading-relaxed max-w-md">
               Bexruz Boynazarov — Product Engineer, Forward Deployed Engineer va Tizim Arxitektori. 

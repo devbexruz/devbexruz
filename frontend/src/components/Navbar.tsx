@@ -86,8 +86,8 @@ export default function Navbar() {
 
             {/* Brand Logo & Title */}
             <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-900 to-blue-900 text-amber-400 flex items-center justify-center font-bold text-base shadow-sm group-hover:scale-105 transition-transform duration-200">
-                <Code2 className="w-5 h-5 text-amber-400" />
+              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm group-hover:scale-105 transition-transform duration-200 shrink-0 border border-slate-800/20 bg-[#0A0F1D]">
+                <img src="/icon.svg" alt="DeveloperLogic" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold text-slate-950 text-sm sm:text-base tracking-tight group-hover:text-blue-900 transition leading-none">

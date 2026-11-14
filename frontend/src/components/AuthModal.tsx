@@ -348,8 +348,8 @@ export default function AuthModal({
         {/* Header Bar */}
         <div className="bg-slate-900 px-5 py-4 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-400 font-bold">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+            <div className="w-8 h-8 rounded-xl overflow-hidden shadow-xs shrink-0 border border-slate-700/50 bg-[#0A0F1D]">
+              <img src="/icon.svg" alt="DeveloperLogic" className="w-full h-full object-cover" />
             </div>
             <div>
               <h3 className="font-extrabold text-sm text-white tracking-tight flex items-center gap-2">
