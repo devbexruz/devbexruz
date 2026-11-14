@@ -5,11 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Code2,
-  Sparkles,
   Send,
-  Layers,
-  HelpCircle,
-  User as UserIcon,
   LogOut,
   ShieldAlert,
   Menu,
@@ -24,7 +20,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<"login" | "register" | "telegram" | "google">("register");
+  const [authModalMode, setAuthModalMode] = useState<"login" | "register" | "telegram" | "google">("login");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Sync auth state
@@ -51,70 +47,60 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "/", label: "Bosh sahifa", icon: Code2 },
-    { href: "/#estimator", label: "AI Smeta Hisoblash", icon: Sparkles, highlight: true },
-    { href: "/#services", label: "Xizmatlar & Narxlar", icon: Layers },
-    { href: "/problems", label: "Dev Muammolar (Q&A)", icon: HelpCircle },
-    { href: "/about", label: "Muhandis Haqida", icon: UserIcon },
+    { href: "/", label: "Asosiy" },
+    { href: "/#estimator", label: "AI Smeta" },
+    { href: "/#services", label: "Xizmatlar" },
+    { href: "/problems", label: "Muammolar" },
+    { href: "/about", label: "Muhandis" },
   ];
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-17">
+          <div className="flex items-center justify-between h-16">
 
             {/* Brand Logo & Title */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-900 to-blue-900 text-amber-400 flex items-center justify-center font-bold text-lg shadow-sm group-hover:scale-105 transition-transform duration-200">
+            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-900 to-blue-900 text-amber-400 flex items-center justify-center font-bold text-base shadow-sm group-hover:scale-105 transition-transform duration-200">
                 <Code2 className="w-5 h-5 text-amber-400" />
               </div>
               <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="font-black text-slate-950 text-base tracking-tight group-hover:text-blue-900 transition">
-                    DEVELOPER LOGIC
-                  </span>
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200/60">
-                    AI &amp; System
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-slate-500">
-                  Bexruz Boynazarov · Forward Deployed Architect
+                <span className="font-extrabold text-slate-950 text-sm sm:text-base tracking-tight group-hover:text-blue-900 transition leading-none">
+                  DeveloperLogic
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">
+                  Systems &amp; AI Platform
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1.5 bg-slate-50/80 p-1 rounded-xl border border-slate-200/60">
+            <nav className="hidden md:flex items-center gap-1 lg:gap-2">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href;
-                const Icon = link.icon;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                       isActive
-                        ? "bg-white text-blue-900 shadow-2xs border border-slate-200/80"
-                        : "text-slate-600 hover:text-slate-950 hover:bg-slate-100/70"
+                        ? "bg-slate-100 text-blue-900 font-bold"
+                        : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${link.highlight ? "text-amber-500 animate-pulse" : "text-slate-500"}`} />
-                    <span>{link.label}</span>
-                    {link.highlight && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
-                    )}
+                    {link.label}
                   </Link>
                 );
               })}
             </nav>
 
             {/* Right Action: User Auth & Contact */}
-            <div className="hidden sm:flex items-center gap-2.5">
+            <div className="hidden sm:flex items-center gap-2">
               
               {/* If Logged In */}
               {currentUser ? (
-                <div className="flex items-center gap-2.5 bg-slate-50 py-1 px-2.5 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-2 bg-slate-50 py-1 px-2.5 rounded-xl border border-slate-200">
                   <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center overflow-hidden">
                     {currentUser.avatar_url ? (
                       <img src={currentUser.avatar_url} alt={currentUser.full_name || ""} className="w-full h-full object-cover" />
@@ -151,7 +137,7 @@ export default function Navbar() {
                 </div>
               ) : (
                 /* If Not Logged In */
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => openAuth("login")}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition cursor-pointer"
@@ -162,29 +148,29 @@ export default function Navbar() {
 
                   <button
                     onClick={() => openAuth("register")}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-extrabold text-white bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 shadow-2xs transition active:scale-[0.98] cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-xs transition active:scale-[0.98] cursor-pointer"
                   >
-                    <UserPlus className="w-3.5 h-3.5 text-amber-300" />
+                    <UserPlus className="w-3.5 h-3.5" />
                     <span>Ro'yxatdan o'tish</span>
                   </button>
                 </div>
               )}
 
-              {/* Direct Telegram Chat Button */}
+              {/* Telegram Icon Button */}
               <a
                 href="https://t.me/bexruzdeveloper"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition"
+                className="p-2 rounded-lg text-sky-600 hover:text-sky-700 hover:bg-sky-50 border border-sky-100 transition"
+                title="Telegram orqali bog'lanish"
               >
-                <Send className="w-3.5 h-3.5 text-sky-600" />
-                <span className="hidden md:inline">Telegram</span>
+                <Send className="w-4 h-4" />
               </a>
 
             </div>
 
             {/* Mobile Hamburger Button */}
-            <div className="flex lg:hidden items-center gap-2">
+            <div className="flex md:hidden items-center gap-2">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
@@ -199,37 +185,39 @@ export default function Navbar() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 animate-fade-in shadow-lg">
+          <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 animate-fade-in shadow-lg">
             <div className="space-y-1">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href;
-                const Icon = link.icon;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold ${
-                      isActive ? "bg-blue-50 text-blue-900" : "text-slate-700 hover:bg-slate-50"
+                    className={`block px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                      isActive ? "bg-slate-100 text-blue-900 font-bold" : "text-slate-700 hover:bg-slate-50"
                     }`}
                   >
-                    <Icon className="w-4 h-4 text-blue-600" />
-                    <span>{link.label}</span>
+                    {link.label}
                   </Link>
                 );
               })}
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            <div className="pt-3 border-t border-slate-100 space-y-2">
               {currentUser ? (
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-50 border border-slate-200">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
                       {(currentUser.full_name || currentUser.username).charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900">{currentUser.full_name || currentUser.username}</div>
-                      <div className="text-[10px] text-slate-500">{currentUser.email}</div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-900">
+                        {currentUser.full_name || currentUser.username}
+                      </span>
+                      <span className="text-[10px] text-slate-500 capitalize">
+                        {currentUser.role === "admin" ? "Admin" : "Dasturchi"}
+                      </span>
                     </div>
                   </div>
                   <button
@@ -249,7 +237,7 @@ export default function Navbar() {
                   </button>
                   <button
                     onClick={() => openAuth("register")}
-                    className="py-2.5 px-3 rounded-xl bg-blue-700 text-white text-xs font-bold text-center"
+                    className="py-2.5 px-3 rounded-xl bg-blue-600 text-white text-xs font-bold text-center"
                   >
                     Ro'yxatdan o'tish
                   </button>

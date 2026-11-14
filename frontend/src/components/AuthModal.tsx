@@ -16,8 +16,8 @@ import {
   KeyRound,
   Phone,
   ExternalLink,
-  ChevronRight,
-  PlusCircle
+  LogIn,
+  UserPlus
 } from "lucide-react";
 import {
   loginUser,
@@ -29,7 +29,6 @@ import {
   saveAuthSession,
   AuthUser
 } from "@/lib/api";
-import { signInWithGoogleFirebase } from "@/lib/firebase";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -41,14 +40,14 @@ interface AuthModalProps {
 export default function AuthModal({
   isOpen,
   onClose,
-  initialMode = "register",
+  initialMode = "login",
   onSuccess
 }: AuthModalProps) {
-  const [activeTab, setActiveTab] = useState<"register" | "login" | "telegram" | "google">(
-    initialMode === "telegram" || initialMode === "google" ? initialMode : "register"
+  const [activeTab, setActiveTab] = useState<"login" | "telegram" | "register" | "google">(
+    initialMode || "login"
   );
 
-  // Email flow state
+  // Email flow state (Registration)
   const [emailStep, setEmailStep] = useState<"form" | "verify">("form");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -77,7 +76,7 @@ export default function AuthModal({
   const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
-    setActiveTab(initialMode === "telegram" || initialMode === "google" ? initialMode : "register");
+    setActiveTab(initialMode || "login");
     setEmailStep("form");
     setTgStep("phone");
     setError("");
@@ -97,97 +96,6 @@ export default function AuthModal({
     const interval = setInterval(() => setTgTimeLeft((prev) => prev - 1), 1000);
     return () => clearInterval(interval);
   }, [tgStep, tgTimeLeft]);
-
-  if (!isOpen) return null;
-
-  const formatTimer = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const handleAuthSuccess = (user: AuthUser, message: string) => {
-    setSuccessMsg(message);
-    if (onSuccess) onSuccess(user);
-    setTimeout(() => {
-      onClose();
-    }, 1200);
-  };
-
-  // --- REAL GOOGLE OAUTH FLOW (GOOGLE ACCOUNT CHOOSER) ---
-  const handleRealGoogleSignIn = async () => {
-    setLoading(true);
-    setError("");
-    setSuccessMsg("");
-
-    // 1. First attempt: Firebase Auth Google Provider with popup
-    try {
-      const googleUser = await signInWithGoogleFirebase();
-      const res = await authWithGoogle({
-        email: googleUser.email,
-        name: googleUser.name,
-        avatar_url: googleUser.avatar_url,
-        sub: googleUser.sub,
-      });
-      saveAuthSession(res);
-      handleAuthSuccess(res.user, `Google (${googleUser.email}) hisobi orqali muvaffaqiyatli kirdingiz!`);
-      return;
-    } catch (fbErr: any) {
-      console.warn("Firebase Google popup fallback to GIS:", fbErr);
-      if (fbErr?.code === "auth/popup-closed-by-user") {
-        setError("Google oynasi yopildi. Qayta urinib ko'ring.");
-        setLoading(false);
-        return;
-      }
-    }
-
-    // 2. Second attempt: Google Identity Services (GIS) Token Client
-    try {
-      if (typeof window !== "undefined" && (window as any).google?.accounts?.oauth2) {
-        const client = (window as any).google.accounts.oauth2.initTokenClient({
-          client_id: "655373695851-s2s11nbe9b27ssdloc3mc5rg8scfejb6.apps.googleusercontent.com",
-          scope: "email profile openid",
-          callback: async (tokenResponse: any) => {
-            if (tokenResponse?.error) {
-              setError(`Google xatoligi: ${tokenResponse.error}`);
-              setLoading(false);
-              return;
-            }
-            if (tokenResponse?.access_token) {
-              try {
-                const infoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                });
-                const userInfo = await infoRes.json();
-                if (!userInfo.email) {
-                  throw new Error("Google hisobidan email manzili olinmadi");
-                }
-                const res = await authWithGoogle({
-                  email: userInfo.email,
-                  name: userInfo.name || userInfo.email.split("@")[0],
-                  avatar_url: userInfo.picture,
-                  sub: userInfo.sub,
-                });
-                saveAuthSession(res);
-                handleAuthSuccess(res.user, `Google (${userInfo.email}) hisobi orqali muvaffaqiyatli kirdingiz!`);
-              } catch (e: any) {
-                setError(e.message || "Google ma'lumotlarini yuklashda xatolik");
-              } finally {
-                setLoading(false);
-              }
-            }
-          },
-        });
-        client.requestAccessToken({ prompt: "select_account" });
-        return;
-      } else {
-        throw new Error("Google hisoblari xizmati yuklanmadi. Iltimos brauzerni qayta yuklang yoki rasmiy tugmadan foydalaning.");
-      }
-    } catch (gisErr: any) {
-      setError(gisErr.message || "Google orqali kirishda xatolik yuz berdi");
-      setLoading(false);
-    }
-  };
 
   // Google Identity Services official button render
   useEffect(() => {
@@ -234,7 +142,7 @@ export default function AuthModal({
               size: "large",
               text: "continue_with",
               shape: "pill",
-              width: 320,
+              width: 300,
             });
           }
         } catch (e) {
@@ -244,6 +152,75 @@ export default function AuthModal({
     }, 250);
     return () => clearTimeout(timer);
   }, [isOpen, activeTab]);
+
+  if (!isOpen) return null;
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleAuthSuccess = (user: AuthUser, message: string) => {
+    setSuccessMsg(message);
+    if (onSuccess) onSuccess(user);
+    setTimeout(() => {
+      onClose();
+    }, 1200);
+  };
+
+  // --- GOOGLE OAUTH VIA GOOGLE IDENTITY SERVICES ---
+  const handleRealGoogleSignIn = async () => {
+    setLoading(true);
+    setError("");
+    setSuccessMsg("");
+
+    try {
+      if (typeof window !== "undefined" && (window as any).google?.accounts?.oauth2) {
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: "655373695851-s2s11nbe9b27ssdloc3mc5rg8scfejb6.apps.googleusercontent.com",
+          scope: "email profile openid",
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse?.error) {
+              setError("Google oynasi yopildi yoki xatolik yuz berdi.");
+              setLoading(false);
+              return;
+            }
+            if (tokenResponse?.access_token) {
+              try {
+                const infoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                });
+                const userInfo = await infoRes.json();
+                if (!userInfo.email) {
+                  throw new Error("Google hisobidan email manzili olinmadi");
+                }
+                const res = await authWithGoogle({
+                  email: userInfo.email,
+                  name: userInfo.name || userInfo.email.split("@")[0],
+                  avatar_url: userInfo.picture,
+                  sub: userInfo.sub,
+                });
+                saveAuthSession(res);
+                handleAuthSuccess(res.user, `Google (${userInfo.email}) hisobi orqali muvaffaqiyatli kirdingiz!`);
+              } catch (e: any) {
+                setError(e.message || "Google ma'lumotlarini yuklashda xatolik");
+              } finally {
+                setLoading(false);
+              }
+            }
+          },
+        });
+        client.requestAccessToken({ prompt: "select_account" });
+      } else {
+        setError("Google Identity moduli brauzerda yuklanmadi. Iltimos Telegram botimiz yoki Gmail kodi orqali kiring.");
+        setLoading(false);
+      }
+    } catch (gisErr: any) {
+      setError("Google avtorizatsiyasida xatolik yuz berdi. Telegram yoki Gmail orqali kiring.");
+      setLoading(false);
+    }
+  };
 
   // --- TELEGRAM FLOW: SEND CODE VIA BOT ---
   const handleSendTgCode = async (e: React.FormEvent) => {
@@ -258,18 +235,13 @@ export default function AuthModal({
     try {
       const res = await sendTelegramCode(tgPhone);
       setTgStep("code");
-      setTgTimeLeft(600);
+      setTgTimeLeft(res.expires_in_seconds || 600);
       setTgSentViaBot(res.sent_via_bot);
       if (res.bot_url) setTgBotUrl(res.bot_url);
       if (res.test_code) setTgTestCode(res.test_code);
-
-      if (res.sent_via_bot) {
-        setSuccessMsg("Tasdiqlash kodi Telegram botimiz (@developerlogicbot) orqali yuborildi!");
-      } else {
-        setSuccessMsg("Telegram botimizni oching va Start tugmasini bosing.");
-      }
+      setSuccessMsg(res.message);
     } catch (err: any) {
-      setError(err.message || "Telegram kodini yuborishda xatolik yuz berdi");
+      setError(err.message || "Telegram orqali kod yuborishda xatolik yuz berdi");
     } finally {
       setLoading(false);
     }
@@ -279,7 +251,7 @@ export default function AuthModal({
   const handleVerifyTgCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tgCode || tgCode.length < 4) {
-      setError("Iltimos, Telegram orqali olingan 6 xonali kodni kiriting");
+      setError("Telegram tasdiqlash kodini to'liq kiriting");
       return;
     }
     setLoading(true);
@@ -293,7 +265,7 @@ export default function AuthModal({
       saveAuthSession(res);
       handleAuthSuccess(res.user, "Telegram orqali muvaffaqiyatli kirdingiz!");
     } catch (err: any) {
-      setError(err.message || "Tasdiqlash kodi xato yoki muddati tugagan");
+      setError(err.message || "Telegram kodi noto'g'ri yoki muddati tugagan");
     } finally {
       setLoading(false);
     }
@@ -369,54 +341,51 @@ export default function AuthModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
         
         {/* Header Bar */}
-        <div className="bg-slate-900 px-6 py-4.5 text-white flex items-center justify-between border-b border-slate-800">
+        <div className="bg-slate-900 px-5 py-4 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-400 font-bold">
-              <Sparkles className="w-5 h-5 text-amber-400" />
+            <div className="w-8 h-8 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-400 font-bold">
+              <Sparkles className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <h3 className="font-black text-base text-white tracking-tight flex items-center gap-2">
-                Developer Logic
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-300 border border-blue-400/30">
-                  Kirish &amp; Ro'yxat
-                </span>
+              <h3 className="font-extrabold text-sm text-white tracking-tight flex items-center gap-2">
+                DeveloperLogic Platform
               </h3>
-              <p className="text-xs text-slate-400 font-medium">
-                Sizga qulay autentifikatsiya usulini tanlang
+              <p className="text-[11px] text-slate-400">
+                Kirish yoki ro'yxatdan o'tish usulini tanlang
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* 4 Tabs Selector */}
-        <div className="grid grid-cols-4 p-1.5 bg-slate-100 border-b border-slate-200 text-xs font-bold gap-1">
+        {/* 4 Tabs Selector in Clean Order */}
+        <div className="grid grid-cols-4 p-1 bg-slate-100 border-b border-slate-200 text-xs font-bold gap-1">
           <button
-            onClick={() => { setActiveTab("register"); setError(""); }}
-            className={`py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === "register"
-                ? "bg-white text-blue-900 shadow-2xs font-black border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900"
+            onClick={() => { setActiveTab("login"); setError(""); setSuccessMsg(""); }}
+            className={`py-2 rounded-lg transition flex items-center justify-center gap-1 cursor-pointer ${
+              activeTab === "login"
+                ? "bg-white text-slate-950 shadow-xs font-black border border-slate-200"
+                : "text-slate-600 hover:text-slate-950"
             }`}
           >
-            <Mail className="w-3.5 h-3.5 text-blue-600" />
-            <span>Gmail</span>
+            <LogIn className="w-3.5 h-3.5 text-blue-600" />
+            <span>Kirish</span>
           </button>
 
           <button
-            onClick={() => { setActiveTab("telegram"); setError(""); }}
-            className={`py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            onClick={() => { setActiveTab("telegram"); setError(""); setSuccessMsg(""); }}
+            className={`py-2 rounded-lg transition flex items-center justify-center gap-1 cursor-pointer ${
               activeTab === "telegram"
-                ? "bg-white text-sky-700 shadow-2xs font-black border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-sky-700 shadow-xs font-black border border-slate-200"
+                : "text-slate-600 hover:text-slate-950"
             }`}
           >
             <Send className="w-3.5 h-3.5 text-sky-500" />
@@ -424,11 +393,23 @@ export default function AuthModal({
           </button>
 
           <button
-            onClick={() => { setActiveTab("google"); setError(""); }}
-            className={`py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            onClick={() => { setActiveTab("register"); setError(""); setSuccessMsg(""); }}
+            className={`py-2 rounded-lg transition flex items-center justify-center gap-1 cursor-pointer ${
+              activeTab === "register"
+                ? "bg-white text-blue-900 shadow-xs font-black border border-slate-200"
+                : "text-slate-600 hover:text-slate-950"
+            }`}
+          >
+            <Mail className="w-3.5 h-3.5 text-blue-600" />
+            <span>Gmail</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("google"); setError(""); setSuccessMsg(""); }}
+            className={`py-2 rounded-lg transition flex items-center justify-center gap-1 cursor-pointer ${
               activeTab === "google"
-                ? "bg-white text-slate-900 shadow-2xs font-black border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-slate-900 shadow-xs font-black border border-slate-200"
+                : "text-slate-600 hover:text-slate-950"
             }`}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
@@ -439,22 +420,10 @@ export default function AuthModal({
             </svg>
             <span>Google</span>
           </button>
-
-          <button
-            onClick={() => { setActiveTab("login"); setError(""); }}
-            className={`py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === "login"
-                ? "bg-white text-slate-900 shadow-2xs font-black border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <KeyRound className="w-3.5 h-3.5 text-amber-500" />
-            <span>Kirish</span>
-          </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           
           {/* Alerts */}
           {error && (
@@ -471,53 +440,94 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* TAB 1: REAL GOOGLE OAUTH ACCOUNT CHOOSER */}
-          {activeTab === "google" && (
+          {/* TAB 1: STANDARD LOGIN */}
+          {activeTab === "login" && (
             <div className="space-y-4">
-              <div className="text-center pb-1">
-                <div className="w-14 h-14 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center mx-auto mb-2.5">
-                  <svg className="w-8 h-8" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
+              <form onSubmit={handleLogin} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Email yoki Username
+                  </label>
+                  <div className="relative">
+                    <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      value={loginEmailOrUser}
+                      onChange={(e) => setLoginEmailOrUser(e.target.value)}
+                      placeholder="bexruz yoki pochta@gmail.com"
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 text-xs font-medium text-slate-900 outline-hidden"
+                    />
+                  </div>
                 </div>
-                <h4 className="text-sm font-extrabold text-slate-900">Google orqali hisobni tanlash</h4>
-                <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                  Tugmani bossangiz, brauzeringizdagi Google akkountlaringiz oynasi ochiladi va tanlagan profilingiz bilan bir zumda kirasiz.
-                </p>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Parol</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="password"
+                      required
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 text-xs font-medium text-slate-900 outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mt-2 py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-slate-950 hover:bg-slate-800 transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? (
+                    <span>Tekshirilmoqda...</span>
+                  ) : (
+                    <>
+                      <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Tizimga kirish</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Quick 1-click alternative shortcuts */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <div className="text-[11px] text-slate-400 text-center font-medium">yoki parolsiz tezkor kirish:</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("telegram")}
+                    className="py-2 px-3 rounded-xl border border-sky-200 hover:border-sky-400 bg-sky-50/50 hover:bg-sky-50 text-sky-800 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Telegram Bot</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("google")}
+                    className="py-2 px-3 rounded-xl border border-slate-200 hover:border-blue-400 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>Google</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Primary Real Google Account Selector Button */}
-              <div className="pt-2 space-y-3">
+              <div className="text-center pt-1">
                 <button
                   type="button"
-                  disabled={loading}
-                  onClick={handleRealGoogleSignIn}
-                  className="w-full py-3.5 px-4 rounded-xl border-2 border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/50 text-slate-800 font-bold text-xs flex items-center justify-center gap-3 transition shadow-xs hover:shadow-md cursor-pointer disabled:opacity-50"
+                  onClick={() => setActiveTab("register")}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-bold cursor-pointer"
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>{loading ? "Google oynasi yuklanmoqda..." : "Google hisoblari ro'yxatini ochish"}</span>
+                  Akkountingiz yo'qmi? Ro'yxatdan o'tish →
                 </button>
-
-                {/* Official Google-rendered button mount */}
-                <div className="flex flex-col items-center justify-center pt-2">
-                  <div className="text-[11px] text-slate-400 mb-2 font-medium">yoki rasmiy Google tugmasi orqali:</div>
-                  <div id="g_official_button" className="flex justify-center min-h-[44px]"></div>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[11px] flex items-start gap-2 leading-relaxed">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>
-                  Hech qanday parol talab qilinmaydi. Google OAuth 2.0 xavfsiz protokoli orqali avtomatik tasdiqlanadi.
-                </span>
               </div>
             </div>
           )}
@@ -526,14 +536,14 @@ export default function AuthModal({
           {activeTab === "telegram" && (
             <div>
               {tgStep === "phone" ? (
-                <form onSubmit={handleSendTgCode} className="space-y-4">
+                <form onSubmit={handleSendTgCode} className="space-y-3.5">
                   <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900">
                     <div className="flex items-center gap-2 mb-1">
                       <Send className="w-4 h-4 text-sky-600" />
                       <span className="text-xs font-bold">Rasmiy Telegram Bot: @developerlogicbot</span>
                     </div>
                     <p className="text-[11px] text-sky-800 leading-relaxed">
-                      Telefon raqamingizni kiriting. Tasdiqlash kodi to'g'ridan-to'g'ri Telegram botimiz orqali yuboriladi.
+                      Telefon raqamingizni kiriting. Tasdiqlash kodi to'g'ridan-to'g'ri Telegram botimiz orqali taqdim etiladi.
                     </p>
                   </div>
 
@@ -686,58 +696,58 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* TAB 3: GMAIL EMAIL REGISTRATION WITH CODE */}
+          {/* TAB 3: EMAIL OTP REGISTRATION */}
           {activeTab === "register" && (
             <div>
               {emailStep === "form" ? (
                 <form onSubmit={handleSendEmailCode} className="space-y-3.5">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Ism va Familiya <span className="text-rose-500">*</span>
+                      Ism va Familiyangiz <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
-                      <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                       <input
                         type="text"
                         required
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="Masalan: Bexruz Boynazarov"
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 text-xs font-medium text-slate-900 outline-hidden"
+                        className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-xs font-medium text-slate-900 outline-hidden"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Email manzili (Gmail) <span className="text-rose-500">*</span>
+                      Gmail / Elektron pochta manzili <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                       <input
                         type="email"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="nomingiz@gmail.com"
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 text-xs font-medium text-slate-900 outline-hidden"
+                        placeholder="masalan: bexruz@gmail.com"
+                        className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-xs font-medium text-slate-900 outline-hidden"
                       />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-bold text-slate-700">Parol</label>
-                      <span className="text-[10px] text-slate-400">(ixtiyoriy)</span>
+                      <label className="block text-xs font-bold text-slate-700">Parol o'rnatish</label>
+                      <span className="text-[10px] text-slate-400">(keyinchalik kirish uchun)</span>
                     </div>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                       <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Kamida 6 ta belgi"
-                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 text-xs font-medium text-slate-900 outline-hidden"
+                        className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-xs font-medium text-slate-900 outline-hidden"
                       />
                     </div>
                   </div>
@@ -745,20 +755,20 @@ export default function AuthModal({
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full mt-2 py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-blue-600 hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-blue-600 hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
                   >
                     {loading ? (
                       <span>Kod yuborilmoqda...</span>
                     ) : (
                       <>
-                        <span>Tasdiqlash kodini yuborish</span>
+                        <span>Tasdiqlash kodini olish</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </>
                     )}
                   </button>
 
                   <p className="text-[11px] text-slate-500 text-center mt-2 leading-relaxed">
-                    ✉️ Elektron pochtangizga no-reply orqali 6 xonali tasdiqlash kodi yuboriladi. Kod <strong>10 daqiqa</strong> amal qiladi.
+                    ✉️ Pochtaga no-reply orqali 6 xonali tasdiqlash kodi yuboriladi (10 daqiqa amal qiladi).
                   </p>
                 </form>
               ) : (
@@ -775,7 +785,7 @@ export default function AuthModal({
                       </span>
                     </div>
                     <p className="text-[11px] text-blue-700">
-                      Elektron pochtangizga yuborilgan 6 xonali kodni kiriting.
+                      Pochtangizga yuborilgan 6 xonali tasdiqlash kodini kiriting.
                     </p>
                   </div>
 
@@ -845,64 +855,65 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* TAB 4: STANDARD LOGIN */}
-          {activeTab === "login" && (
-            <form onSubmit={handleLogin} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Email yoki Username
-                </label>
-                <div className="relative">
-                  <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    required
-                    value={loginEmailOrUser}
-                    onChange={(e) => setLoginEmailOrUser(e.target.value)}
-                    placeholder="bexruz yoki email@gmail.com"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 text-xs font-medium text-slate-900 outline-hidden"
-                  />
+          {/* TAB 4: GOOGLE OAUTH */}
+          {activeTab === "google" && (
+            <div className="space-y-4">
+              <div className="text-center pb-1">
+                <div className="w-12 h-12 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
                 </div>
+                <h4 className="text-sm font-extrabold text-slate-900">Google hisobini tanlash</h4>
+                <p className="text-xs text-slate-500 mt-1">
+                  Kompyuteringizdagi Google akkountlaringiz ro'yxatidan tanlab tizimga kiring.
+                </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Parol</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="password"
-                    required
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-blue-600 text-xs font-medium text-slate-900 outline-hidden"
-                  />
-                </div>
+              {/* Official Google-rendered button */}
+              <div className="flex flex-col items-center justify-center space-y-3">
+                <div id="g_official_button" className="flex justify-center min-h-[44px]"></div>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handleRealGoogleSignIn}
+                  className="w-full py-3 px-4 rounded-xl border border-slate-300 hover:border-blue-500 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center justify-center gap-2.5 transition shadow-2xs cursor-pointer disabled:opacity-50"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>{loading ? "Yuklanmoqda..." : "Google hisobini ochish va tanlash"}</span>
+                </button>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-3 px-4 rounded-xl font-extrabold text-xs text-white bg-slate-900 hover:bg-slate-800 transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                {loading ? (
-                  <span>Tekshirilmoqda...</span>
-                ) : (
-                  <>
-                    <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Tizimga kirish</span>
-                  </>
-                )}
-              </button>
-            </form>
+              {/* Telegram fallback recommendation */}
+              <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-[11px] flex items-center justify-between">
+                <span>Eng tezkor va kafolatlangan usul:</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("telegram")}
+                  className="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>Telegram bot (@developerlogicbot)</span>
+                </button>
+              </div>
+            </div>
           )}
 
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-slate-50 px-6 py-3 border-t border-slate-100 text-center text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
+        <div className="bg-slate-50 px-5 py-2.5 border-t border-slate-100 text-center text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Xavfsiz shifrlangan ulanish · Developer Logic 2026</span>
+          <span>Xavfsiz shifrlangan ulanish · DeveloperLogic 2026</span>
         </div>
 
       </div>
