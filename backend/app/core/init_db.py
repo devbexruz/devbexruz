@@ -139,8 +139,18 @@ Server Actions va URL searchParams orqali state'ni boshqarishning eng toza va sa
 ]
 
 async def init_database():
+    from sqlalchemy import text
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Migration helpers for existing sqlite/postgres databases
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(50) DEFAULT 'email'"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN provider_id VARCHAR(255)"))
+        except Exception:
+            pass
 
     async with AsyncSessionLocal() as session:
         # 1. Seed / Update Admin User

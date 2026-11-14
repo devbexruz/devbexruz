@@ -21,10 +21,22 @@ class User(Base):
     role = Column(String(50), default="developer") # "developer", "admin"
     avatar_url = Column(String(500), nullable=True)
     github_profile = Column(String(255), nullable=True)
+    auth_provider = Column(String(50), default="email") # "email", "google", "telegram"
+    provider_id = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     problems = relationship("Problem", back_populates="author", cascade="all, delete-orphan")
     solutions = relationship("Solution", back_populates="author", cascade="all, delete-orphan")
+
+class EmailVerificationCode(Base):
+    __tablename__ = "email_verification_codes"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    email = Column(String(255), index=True, nullable=False)
+    code = Column(String(10), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 class Problem(Base):
     __tablename__ = "problems"

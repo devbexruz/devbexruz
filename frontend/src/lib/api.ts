@@ -215,3 +215,136 @@ export async function batchGenerateSeo(limit: number = 10, onlyUnoptimized: bool
   });
   return await res.json();
 }
+
+// --- User Authentication API ---
+export interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  full_name?: string;
+  role?: string;
+  avatar_url?: string;
+  auth_provider?: string;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
+export async function loginUser(emailOrUsername: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email_or_username: emailOrUsername, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Login xatoligi" }));
+    throw new Error(err.detail || "Email yoki parol noto'g'ri");
+  }
+  return await res.json();
+}
+
+export async function sendVerificationCode(email: string): Promise<{
+  success: boolean;
+  message: string;
+  expires_in_seconds: number;
+  test_code?: string;
+}> {
+  const res = await fetch(`${API_BASE}/auth/send-verification-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Kod yuborishda xatolik" }));
+    throw new Error(err.detail || "Kod yuborishda xatolik yuz berdi");
+  }
+  return await res.json();
+}
+
+export async function registerWithCode(data: {
+  email: string;
+  code: string;
+  full_name: string;
+  password?: string;
+}): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/register-with-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Ro'yxatdan o'tishda xatolik" }));
+    throw new Error(err.detail || "Ro'yxatdan o'tish amalga oshmadi");
+  }
+  return await res.json();
+}
+
+export async function authWithGoogle(payload: {
+  email: string;
+  name?: string;
+  avatar_url?: string;
+  sub?: string;
+}): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Google orqali kirishda xatolik" }));
+    throw new Error(err.detail || "Google autentifikatsiyasi amalga oshmadi");
+  }
+  return await res.json();
+}
+
+export async function authWithTelegram(payload: {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date?: number;
+  hash?: string;
+}): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/telegram`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Telegram orqali kirishda xatolik" }));
+    throw new Error(err.detail || "Telegram autentifikatsiyasi amalga oshmadi");
+  }
+  return await res.json();
+}
+
+export function saveAuthSession(auth: AuthResponse) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("devbexruz_token", auth.access_token);
+    localStorage.setItem("devbexruz_user", JSON.stringify(auth.user));
+    window.dispatchEvent(new Event("auth-changed"));
+  }
+}
+
+export function getAuthSession(): { token: string | null; user: AuthUser | null } {
+  if (typeof window === "undefined") return { token: null, user: null };
+  const token = localStorage.getItem("devbexruz_token");
+  const userJson = localStorage.getItem("devbexruz_user");
+  try {
+    return { token, user: userJson ? JSON.parse(userJson) : null };
+  } catch {
+    return { token: null, user: null };
+  }
+}
+
+export function clearAuthSession() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("devbexruz_token");
+    localStorage.removeItem("devbexruz_user");
+    window.dispatchEvent(new Event("auth-changed"));
+  }
+}

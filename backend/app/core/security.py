@@ -25,3 +25,28 @@ def create_access_token(subject: str | Any, expires_delta: Optional[timedelta] =
     to_encode = {"exp": expire, "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from app.core.database import get_db
+from app.models import User
+
+security_scheme = HTTPBearer(auto_error=False)
+
+async def get_current_user(
+    token_auth: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> Optional[User]:
+    if not token_auth:
+        return None
+    try:
+        payload = jwt.decode(token_auth.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if not user_id:
+            return None
+        result = await db.execute(select(User).where(User.id == user_id))
+        return result.scalars().first()
+    except Exception:
+        return None

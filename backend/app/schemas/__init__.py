@@ -10,6 +10,7 @@ class UserBase(BaseModel):
     role: Optional[str] = "developer"
     github_profile: Optional[str] = None
     avatar_url: Optional[str] = None
+    auth_provider: Optional[str] = "email"
 
 class UserCreate(UserBase):
     password: str
@@ -17,6 +18,36 @@ class UserCreate(UserBase):
 class UserLogin(BaseModel):
     email_or_username: str
     password: str
+
+class SendVerificationCodeRequest(BaseModel):
+    email: str
+
+class SendVerificationCodeResponse(BaseModel):
+    success: bool
+    message: str
+    expires_in_seconds: int = 600
+    test_code: Optional[str] = None
+
+class RegisterWithCodeRequest(BaseModel):
+    email: str
+    code: str
+    full_name: str
+    password: Optional[str] = None
+
+class GoogleAuthRequest(BaseModel):
+    email: str
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    sub: Optional[str] = None
+
+class TelegramAuthRequest(BaseModel):
+    id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    photo_url: Optional[str] = None
+    auth_date: Optional[int] = None
+    hash: Optional[str] = None
 
 class UserResponse(UserBase):
     id: str
