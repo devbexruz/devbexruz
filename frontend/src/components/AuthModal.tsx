@@ -29,6 +29,7 @@ import {
   saveAuthSession,
   AuthUser
 } from "@/lib/api";
+import { signInWithGoogleFirebase } from "@/lib/firebase";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -70,10 +71,6 @@ export default function AuthModal({
   const [loginEmailOrUser, setLoginEmailOrUser] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // Google Account Chooser State
-  const [customGoogleEmail, setCustomGoogleEmail] = useState("");
-  const [showCustomGoogleInput, setShowCustomGoogleInput] = useState(false);
-
   // Loading & alerts
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -85,7 +82,6 @@ export default function AuthModal({
     setTgStep("phone");
     setError("");
     setSuccessMsg("");
-    setShowCustomGoogleInput(false);
   }, [initialMode, isOpen]);
 
   // Email countdown timer
@@ -118,25 +114,136 @@ export default function AuthModal({
     }, 1200);
   };
 
-  // --- GOOGLE OAUTH FLOW (REAL ACCOUNT SELECTION) ---
-  const handleSelectGoogleAccount = async (selectedEmail: string, selectedName?: string) => {
+  // --- REAL GOOGLE OAUTH FLOW (GOOGLE ACCOUNT CHOOSER) ---
+  const handleRealGoogleSignIn = async () => {
     setLoading(true);
     setError("");
+    setSuccessMsg("");
+
+    // 1. First attempt: Firebase Auth Google Provider with popup
     try {
-      const name = selectedName || selectedEmail.split("@")[0].replace(/[._]/g, " ");
+      const googleUser = await signInWithGoogleFirebase();
       const res = await authWithGoogle({
-        email: selectedEmail,
-        name: name.charAt(0).toUpperCase() + name.slice(1),
-        avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`
+        email: googleUser.email,
+        name: googleUser.name,
+        avatar_url: googleUser.avatar_url,
+        sub: googleUser.sub,
       });
       saveAuthSession(res);
-      handleAuthSuccess(res.user, `Google hisobi (${selectedEmail}) orqali kirdingiz!`);
-    } catch (err: any) {
-      setError(err.message || "Google orqali kirishda xatolik");
-    } finally {
+      handleAuthSuccess(res.user, `Google (${googleUser.email}) hisobi orqali muvaffaqiyatli kirdingiz!`);
+      return;
+    } catch (fbErr: any) {
+      console.warn("Firebase Google popup fallback to GIS:", fbErr);
+      if (fbErr?.code === "auth/popup-closed-by-user") {
+        setError("Google oynasi yopildi. Qayta urinib ko'ring.");
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 2. Second attempt: Google Identity Services (GIS) Token Client
+    try {
+      if (typeof window !== "undefined" && (window as any).google?.accounts?.oauth2) {
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: "655373695851-s2s11nbe9b27ssdloc3mc5rg8scfejb6.apps.googleusercontent.com",
+          scope: "email profile openid",
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse?.error) {
+              setError(`Google xatoligi: ${tokenResponse.error}`);
+              setLoading(false);
+              return;
+            }
+            if (tokenResponse?.access_token) {
+              try {
+                const infoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                });
+                const userInfo = await infoRes.json();
+                if (!userInfo.email) {
+                  throw new Error("Google hisobidan email manzili olinmadi");
+                }
+                const res = await authWithGoogle({
+                  email: userInfo.email,
+                  name: userInfo.name || userInfo.email.split("@")[0],
+                  avatar_url: userInfo.picture,
+                  sub: userInfo.sub,
+                });
+                saveAuthSession(res);
+                handleAuthSuccess(res.user, `Google (${userInfo.email}) hisobi orqali muvaffaqiyatli kirdingiz!`);
+              } catch (e: any) {
+                setError(e.message || "Google ma'lumotlarini yuklashda xatolik");
+              } finally {
+                setLoading(false);
+              }
+            }
+          },
+        });
+        client.requestAccessToken({ prompt: "select_account" });
+        return;
+      } else {
+        throw new Error("Google hisoblari xizmati yuklanmadi. Iltimos brauzerni qayta yuklang yoki rasmiy tugmadan foydalaning.");
+      }
+    } catch (gisErr: any) {
+      setError(gisErr.message || "Google orqali kirishda xatolik yuz berdi");
       setLoading(false);
     }
   };
+
+  // Google Identity Services official button render
+  useEffect(() => {
+    if (!isOpen || activeTab !== "google") return;
+    const timer = setTimeout(() => {
+      if (typeof window !== "undefined" && (window as any).google?.accounts?.id) {
+        try {
+          (window as any).google.accounts.id.initialize({
+            client_id: "655373695851-s2s11nbe9b27ssdloc3mc5rg8scfejb6.apps.googleusercontent.com",
+            callback: async (response: any) => {
+              if (response.credential) {
+                try {
+                  setLoading(true);
+                  const base64Url = response.credential.split(".")[1];
+                  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+                  const jsonPayload = decodeURIComponent(
+                    atob(base64)
+                      .split("")
+                      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                      .join("")
+                  );
+                  const payload = JSON.parse(jsonPayload);
+                  const res = await authWithGoogle({
+                    email: payload.email,
+                    name: payload.name || payload.email.split("@")[0],
+                    avatar_url: payload.picture,
+                    sub: payload.sub,
+                  });
+                  saveAuthSession(res);
+                  handleAuthSuccess(res.user, `Google (${payload.email}) orqali kirdingiz!`);
+                } catch (e: any) {
+                  setError(e.message || "Google hisobini tekshirishda xatolik");
+                } finally {
+                  setLoading(false);
+                }
+              }
+            },
+          });
+          const btnElem = document.getElementById("g_official_button");
+          if (btnElem) {
+            btnElem.innerHTML = "";
+            (window as any).google.accounts.id.renderButton(btnElem, {
+              theme: "filled_blue",
+              size: "large",
+              text: "continue_with",
+              shape: "pill",
+              width: 320,
+            });
+          }
+        } catch (e) {
+          console.warn("GIS render error:", e);
+        }
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [isOpen, activeTab]);
 
   // --- TELEGRAM FLOW: SEND CODE VIA BOT ---
   const handleSendTgCode = async (e: React.FormEvent) => {
@@ -364,101 +471,54 @@ export default function AuthModal({
             </div>
           )}
 
-          {/* TAB 1: GOOGLE OAUTH ACCOUNT CHOOSER */}
+          {/* TAB 1: REAL GOOGLE OAUTH ACCOUNT CHOOSER */}
           {activeTab === "google" && (
             <div className="space-y-4">
-              <div className="text-center pb-2">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2 border border-slate-200">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24">
+              <div className="text-center pb-1">
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center mx-auto mb-2.5">
+                  <svg className="w-8 h-8" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                   </svg>
                 </div>
-                <h4 className="text-sm font-extrabold text-slate-900">Google hisobi bilan tizimga kirish</h4>
-                <p className="text-xs text-slate-500">Developer Logic ilovasiga ruxsat berish uchun hisobni bosing</p>
+                <h4 className="text-sm font-extrabold text-slate-900">Google orqali hisobni tanlash</h4>
+                <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                  Tugmani bossangiz, brauzeringizdagi Google akkountlaringiz oynasi ochiladi va tanlagan profilingiz bilan bir zumda kirasiz.
+                </p>
               </div>
 
-              {/* Quick Google Account Cards */}
-              <div className="space-y-2">
+              {/* Primary Real Google Account Selector Button */}
+              <div className="pt-2 space-y-3">
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={() => handleSelectGoogleAccount("bexruzdeveloper@gmail.com", "Bexruz Boynazarov")}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/40 transition group cursor-pointer text-left"
+                  onClick={handleRealGoogleSignIn}
+                  className="w-full py-3.5 px-4 rounded-xl border-2 border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/50 text-slate-800 font-bold text-xs flex items-center justify-center gap-3 transition shadow-xs hover:shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center">
-                      B
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 group-hover:text-blue-700">Bexruz Boynazarov</div>
-                      <div className="text-[11px] text-slate-500">bexruzdeveloper@gmail.com</div>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600" />
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>{loading ? "Google oynasi yuklanmoqda..." : "Google hisoblari ro'yxatini ochish"}</span>
                 </button>
 
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleSelectGoogleAccount("developer@developerlogic.uz", "Developer Logic")}
-                  className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/40 transition group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-amber-600 text-white font-bold text-sm flex items-center justify-center">
-                      D
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 group-hover:text-blue-700">Developer Logic Official</div>
-                      <div className="text-[11px] text-slate-500">developer@developerlogic.uz</div>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600" />
-                </button>
+                {/* Official Google-rendered button mount */}
+                <div className="flex flex-col items-center justify-center pt-2">
+                  <div className="text-[11px] text-slate-400 mb-2 font-medium">yoki rasmiy Google tugmasi orqali:</div>
+                  <div id="g_official_button" className="flex justify-center min-h-[44px]"></div>
+                </div>
               </div>
 
-              {/* Custom Google Account Input */}
-              {!showCustomGoogleInput ? (
-                <button
-                  type="button"
-                  onClick={() => setShowCustomGoogleInput(true)}
-                  className="w-full py-2.5 text-center text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Boshqa Google hisobini kiritish</span>
-                </button>
-              ) : (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (customGoogleEmail) handleSelectGoogleAccount(customGoogleEmail);
-                  }}
-                  className="pt-2 border-t border-slate-100 space-y-2.5"
-                >
-                  <label className="block text-xs font-bold text-slate-700">
-                    Google hisobingiz email manzili:
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      required
-                      placeholder="masalan: siz@gmail.com"
-                      value={customGoogleEmail}
-                      onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                      className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 outline-hidden focus:border-blue-600"
-                    />
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition cursor-pointer"
-                    >
-                      Kirish
-                    </button>
-                  </div>
-                </form>
-              )}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[11px] flex items-start gap-2 leading-relaxed">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span>
+                  Hech qanday parol talab qilinmaydi. Google OAuth 2.0 xavfsiz protokoli orqali avtomatik tasdiqlanadi.
+                </span>
+              </div>
             </div>
           )}
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import "./globals.css";
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="uz" className="h-full bg-white text-slate-900 scroll-smooth">
       <body className="min-h-full flex flex-col bg-white">
+        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
         <Navbar />
         <main className="flex-1">
           {children}
