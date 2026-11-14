@@ -1,4 +1,21 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+// Dynamic API Base URL:
+// In browser: ALWAYS use same-origin relative path "/api/v1" (prevents localhost Mixed Content / Failed to fetch errors)
+// In SSR (Server Components): use internal backend URL
+export const getApiBase = (): string => {
+  if (typeof window !== "undefined") {
+    return "/api/v1";
+  }
+  return (
+    process.env.INTERNAL_API_URL ||
+    (process.env.NODE_ENV === "production" ? "http://127.0.0.1:8005/api/v1" : "http://127.0.0.1:8000/api/v1")
+  );
+};
+
+export const API_BASE = {
+  toString: () => getApiBase(),
+  valueOf: () => getApiBase(),
+};
+
 
 export interface ServiceItem {
   id: string;
