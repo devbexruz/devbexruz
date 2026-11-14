@@ -11,6 +11,7 @@ interface SolutionItem {
   id: string;
   category: string;
   title: string;
+  shortTab: string;
   badge: string;
   badgeColor: string;
   shortDesc: string;
@@ -24,6 +25,7 @@ const SOLUTIONS: SolutionItem[] = [
     id: "crm",
     category: "01. Savdo & Boshqaruv",
     title: "Maxsus CRM & Ombor Tizimlari",
+    shortTab: "CRM & Ombor",
     badge: "Biznesni 100% Shaffof Boshqarish",
     badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
     shortDesc: "Kompaniyangiz ehtiyojlariga moslashtirilgan mijozlar bazasi, savdo voronkasi, ombor qoldiqlari va xodimlar KPI nazorati.",
@@ -40,6 +42,7 @@ const SOLUTIONS: SolutionItem[] = [
     id: "telegram",
     category: "02. E-Commerce & Botlar",
     title: "Telegram Bot & Web Mini App",
+    shortTab: "Telegram Bot & Mini App",
     badge: "O'zbekistondagi Eng Tez Savdo Kanali",
     badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
     shortDesc: "Telegram ichida to'liq ishlovchi internet do'kon, kuryerlar tizimi, Click / Payme / Uzum to'lovlari va 24/7 avto-javoblar.",
@@ -56,6 +59,7 @@ const SOLUTIONS: SolutionItem[] = [
     id: "web",
     category: "03. Veb & SaaS",
     title: "Web Platformalar & Admin Panellar",
+    shortTab: "Web & SaaS",
     badge: "Yuqori Yuklamali Cloud Arxitektura",
     badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
     shortDesc: "Next.js va FastAPI asosidagi ultra-tezkor veb platformalar, korporativ portallar va xizmat ko'rsatish tizimlari.",
@@ -72,6 +76,7 @@ const SOLUTIONS: SolutionItem[] = [
     id: "mobile",
     category: "04. Mobil Ilovalar",
     title: "iOS & Android Mobil Ilovalar",
+    shortTab: "Mobil Ilova",
     badge: "Flutter & Native Texnologiyalar",
     badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
     shortDesc: "Xodimlar (kassirlar, agentlar, kuryerlar) hamda mijozlar uchun qulay, oflayn rejimda ham ishlovchi mobil dasturlar.",
@@ -88,6 +93,7 @@ const SOLUTIONS: SolutionItem[] = [
     id: "hardware",
     category: "05. Qurilmalar & POS",
     title: "Hard Qurilmalar & Kassa Integratsiyasi",
+    shortTab: "Kassa & POS Uskunalar",
     badge: "Fiskal Qurilmalar & Uskunalar",
     badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
     shortDesc: "POS terminallar, chek printerlar, shtrix-kod skanerlar, turniketlar va elektron tarozilarni to'g'ridan-to'g'ri dasturga ulash.",
@@ -104,6 +110,7 @@ const SOLUTIONS: SolutionItem[] = [
     id: "integrations",
     category: "06. Tashqi Tizimlar",
     title: "1C, Soliq, Bank & SMS Integratsiyalari",
+    shortTab: "1C & Tashqi Integratsiya",
     badge: "Tizimlararo To'liq Sinxronizatsiya",
     badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
     shortDesc: "1C Enterprise, Soliq / Didox / E-Factura, O'zbekiston banklari API va SMS shlyuzlarini yagona ekotizimga birlashtirish.",
@@ -126,7 +133,7 @@ export default function BusinessSolutionsGrid() {
     <section className="py-16 sm:py-24 bg-white border-t border-slate-200" id="business-solutions">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-14">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3 border border-amber-200">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
             <span>Biznes Egalari Uchun Kompleks Yechimlar</span>
@@ -141,30 +148,34 @@ export default function BusinessSolutionsGrid() {
           </p>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex items-center justify-start lg:justify-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
-          {SOLUTIONS.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 border ${
-                  isActive
-                    ? "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/10"
-                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                }`}
-              >
-                {item.id === "crm" && <Building2 className="w-4 h-4 text-emerald-500" />}
-                {item.id === "telegram" && <Bot className="w-4 h-4 text-blue-500" />}
-                {item.id === "web" && <Globe className="w-4 h-4 text-indigo-500" />}
-                {item.id === "mobile" && <Smartphone className="w-4 h-4 text-purple-500" />}
-                {item.id === "hardware" && <Cpu className="w-4 h-4 text-amber-500" />}
-                {item.id === "integrations" && <Workflow className="w-4 h-4 text-rose-500" />}
-                <span>{item.title}</span>
-              </button>
-            );
-          })}
+        {/* Category Tabs: Centered Segmented Control, no cutoff, no overflow bug */}
+        <div className="w-full flex justify-center mb-10 px-2">
+          <div className="w-full max-w-4xl overflow-x-auto no-scrollbar py-1">
+            <div className="flex items-center justify-start sm:justify-center gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/90 shadow-inner min-w-max mx-auto">
+              {SOLUTIONS.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 cursor-pointer ${
+                      isActive
+                        ? "bg-white text-slate-950 shadow-sm border border-slate-200/90 ring-1 ring-slate-900/5 font-extrabold"
+                        : "text-slate-600 hover:text-slate-950 hover:bg-white/60"
+                    }`}
+                  >
+                    {item.id === "crm" && <Building2 className={`w-4 h-4 ${isActive ? "text-emerald-600" : "text-emerald-500"}`} />}
+                    {item.id === "telegram" && <Bot className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-blue-500"}`} />}
+                    {item.id === "web" && <Globe className={`w-4 h-4 ${isActive ? "text-indigo-600" : "text-indigo-500"}`} />}
+                    {item.id === "mobile" && <Smartphone className={`w-4 h-4 ${isActive ? "text-purple-600" : "text-purple-500"}`} />}
+                    {item.id === "hardware" && <Cpu className={`w-4 h-4 ${isActive ? "text-amber-600" : "text-amber-500"}`} />}
+                    {item.id === "integrations" && <Workflow className={`w-4 h-4 ${isActive ? "text-rose-600" : "text-rose-500"}`} />}
+                    <span>{item.shortTab}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Featured Solution Card */}
