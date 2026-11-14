@@ -385,3 +385,58 @@ export function clearAuthSession() {
     window.dispatchEvent(new Event("auth-changed"));
   }
 }
+
+export interface ProblemAIPolishResult {
+  id?: string;
+  slug?: string;
+  title: string;
+  category?: string;
+  problem_summary?: string;
+  root_cause?: string;
+  recommended_architecture?: string;
+  tech_stack?: string[];
+  tags: string;
+  content_markdown: string;
+  author_name: string;
+  is_saved: boolean;
+}
+
+export async function aiPolishProblem(data: {
+  author_name: string;
+  contact?: string;
+  raw_problem: string;
+  publish_immediately?: boolean;
+}): Promise<ProblemAIPolishResult> {
+  const res = await fetch(`${API_BASE}/problems/ai-polish`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "AI tahlil qilishda xatolik" }));
+    throw new Error(err.detail || "Muammoni AI orqali tahlil qilishda xatolik yuz berdi");
+  }
+  return await res.json();
+}
+
+export async function updateUserRole(role: "business" | "developer"): Promise<AuthUser> {
+  const session = getAuthSession();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (session.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+  }
+  const res = await fetch(`${API_BASE}/auth/role`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ role }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Rolni yangilashda xatolik" }));
+    throw new Error(err.detail || "Rol yangilanmadi");
+  }
+  const updatedUser = await res.json();
+  if (session.token) {
+    saveAuthSession({ access_token: session.token, token_type: "bearer", user: updatedUser });
+  }
+  return updatedUser;
+}

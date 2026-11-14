@@ -41,6 +41,16 @@ def generate_fallback_seo(title: str, content: str, tags: str = "") -> Dict[str,
 async def generate_ai_seo_meta(title: str, content: str, tags: str = "") -> Dict[str, str]:
     clean_content = strip_markdown(content)
     
+    # 1. Prefer Gemini 2.5 Flash if available
+    try:
+        from app.services.gemini_service import generate_gemini_seo
+        gemini_result = await generate_gemini_seo(title, clean_content, tags)
+        if gemini_result and "meta_title" in gemini_result:
+            gemini_result["search_intent_summary"] = "Google & Yandex qidiruv tizimlari uchun Gemini AI tomonidan optimallashtirilgan."
+            return gemini_result
+    except Exception as e:
+        print(f"Gemini SEO failed, trying fallback: {e}")
+
     # If OpenAI API key is configured, call OpenAI
     if settings.OPENAI_API_KEY:
         try:

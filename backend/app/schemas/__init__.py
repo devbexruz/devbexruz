@@ -228,3 +228,27 @@ class AISecMetaResult(BaseModel):
     meta_description: str
     meta_keywords: str
     search_intent_summary: str
+
+# --- User Role & AI Polish Schemas ---
+class UpdateRoleRequest(BaseModel):
+    role: str # "business", "developer", "admin"
+
+class ProblemAIPolishRequest(BaseModel):
+    author_name: str
+    contact: Optional[str] = None
+    raw_problem: str
+    publish_immediately: bool = True
+
+class ProblemAIPolishResponse(BaseModel):
+    id: Optional[str] = None
+    slug: Optional[str] = None
+    title: str
+    category: Optional[str] = None
+    problem_summary: Optional[str] = None
+    root_cause: Optional[str] = None
+    recommended_architecture: Optional[str] = None
+    tech_stack: Optional[List[str]] = None
+    tags: str
+    content_markdown: str
+    author_name: str
+    is_saved: bool = True

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MessageSquare, ThumbsUp, Eye, CheckCircle2, Sparkles, Plus, Search, Tag, Filter } from "lucide-react";
+import { MessageSquare, ThumbsUp, Eye, CheckCircle2, Sparkles, Plus, Search, Tag, Filter, Wand2 } from "lucide-react";
 import { ProblemItem, upvoteProblem, createProblem } from "@/lib/api";
+import NewProblemModal from "./NewProblemModal";
 
 interface Props {
   initialProblems: ProblemItem[];
@@ -14,6 +15,18 @@ export default function ProblemsFeed({ initialProblems }: Props) {
   const [selectedTag, setSelectedTag] = useState<string>("Barchasi");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  
+  // Listen for problem-created event from anywhere
+  useEffect(() => {
+    const handleCreated = (e: any) => {
+      if (e.detail) {
+        setProblems(prev => [e.detail as ProblemItem, ...prev]);
+      }
+    };
+    window.addEventListener("problem-created", handleCreated);
+    return () => window.removeEventListener("problem-created", handleCreated);
+  }, []);
   
   // New Problem Form
   const [newTitle, setNewTitle] = useState("");
@@ -91,13 +104,22 @@ export default function ProblemsFeed({ initialProblems }: Props) {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition cursor-pointer self-start md:self-auto"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Muammo Yozish</span>
-          </button>
+          <div className="flex items-center gap-2 self-start md:self-auto">
+            <button
+              onClick={() => setAiModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs shadow-sm transition cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>AI orqali yozish (Gemini)</span>
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Oddiy yozish</span>
+            </button>
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
@@ -300,6 +322,15 @@ export default function ProblemsFeed({ initialProblems }: Props) {
             </div>
           </div>
         )}
+
+        {/* Gemini AI New Problem Modal */}
+        <NewProblemModal
+          isOpen={aiModalOpen}
+          onClose={() => setAiModalOpen(false)}
+          onProblemCreated={(p) => {
+            setProblems(prev => [p as any, ...prev]);
+          }}
+        />
 
       </div>
     </section>

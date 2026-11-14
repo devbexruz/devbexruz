@@ -33,6 +33,14 @@ async def send_telegram_message(chat_id: int, text: str, reply_markup: Optional[
         logger.error(f"Error sending telegram message to {chat_id}: {e}")
         return False
 
+async def send_telegram_alert(text: str) -> bool:
+    if settings.TELEGRAM_ADMIN_CHAT_ID:
+        try:
+            return await send_telegram_message(int(settings.TELEGRAM_ADMIN_CHAT_ID), text)
+        except Exception:
+            return False
+    return False
+
 async def handle_telegram_update(update: dict, db: AsyncSession):
     """
     Handles incoming webhook updates from @developerlogicbot

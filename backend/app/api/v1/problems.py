@@ -8,9 +8,14 @@ import uuid
 import re
 
 from app.core.database import get_db
-from app.models import Problem, Solution, User
-from app.schemas import ProblemCreate, ProblemResponse, SolutionCreate, SolutionResponse
+from app.models import Problem, Solution, User, LeadInquiry
+from app.schemas import (
+    ProblemCreate, ProblemResponse, SolutionCreate, SolutionResponse,
+    ProblemAIPolishRequest, ProblemAIPolishResponse
+)
 from app.services.seo_service import generate_fallback_seo
+from app.services.gemini_service import polish_problem_with_gemini, generate_gemini_seo
+from app.services.telegram_bot_service import send_telegram_alert
 
 router = APIRouter(prefix="/problems", tags=["Developer Problems (Dev Q&A)"])
 
@@ -75,6 +80,81 @@ async def list_problems(
     problems = result.scalars().all()
 
     return [enrich_seo_fields(p) for p in problems]
+
+@router.post("/ai-polish", response_model=ProblemAIPolishResponse)
+async def ai_polish_problem(req: ProblemAIPolishRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Foydalanuvchi oddiy so'zlar bilan yozgan muammoni Gemini AI orqali tahlil qilib,
+    professional IT arxitektura maqolasiga aylantiradi va bazaga saqlaydi.
+    """
+    author = req.author_name.strip() if req.author_name else "Mehmon"
+    raw = req.raw_problem.strip()
+    if not raw or len(raw) < 5:
+        raise HTTPException(status_code=400, detail="Muammo tavsifi juda qisqa")
+
+    # 1. Polish with Gemini 2.5 Flash
+    polished = await polish_problem_with_gemini(raw, author)
+
+    # 2. Generate SEO
+    seo = await generate_gemini_seo(polished["title"], polished["content_markdown"], polished["tags"])
+
+    saved_id = None
+    saved_slug = None
+
+    if req.publish_immediately:
+        slug = create_slug(polished["title"])
+        new_problem = Problem(
+            title=polished["title"],
+            slug=slug,
+            content_markdown=polished["content_markdown"],
+            tags=polished.get("tags", ""),
+            meta_title=seo.get("meta_title"),
+            meta_description=seo.get("meta_description"),
+            meta_keywords=seo.get("meta_keywords"),
+            meta_generated_by_ai=True
+        )
+        db.add(new_problem)
+
+        # Also register lead inquiry if contact is provided
+        if req.contact and req.contact.strip():
+            inquiry = LeadInquiry(
+                client_name=author,
+                client_contact=req.contact.strip(),
+                business_type=polished.get("category", "Muammo"),
+                problem_description=f"AI Polished Problem: {polished['title']}\nOriginal: {raw}",
+                estimated_solution_json=polished.get("recommended_architecture", "")
+            )
+            db.add(inquiry)
+            try:
+                await send_telegram_alert(
+                    f"🔥 <b>Yangi Muammo / Lead!</b>\n\n"
+                    f"👤 <b>Muallif:</b> {author}\n"
+                    f"📞 <b>Aloqa:</b> {req.contact}\n"
+                    f"📌 <b>Sarlavha:</b> {polished['title']}\n"
+                    f"🔗 <b>Slug:</b> {slug}"
+                )
+            except Exception:
+                pass
+
+        await db.commit()
+        await db.refresh(new_problem)
+        saved_id = new_problem.id
+        saved_slug = new_problem.slug
+
+    return ProblemAIPolishResponse(
+        id=saved_id,
+        slug=saved_slug,
+        title=polished["title"],
+        category=polished.get("category"),
+        problem_summary=polished.get("problem_summary"),
+        root_cause=polished.get("root_cause"),
+        recommended_architecture=polished.get("recommended_architecture"),
+        tech_stack=polished.get("tech_stack"),
+        tags=polished.get("tags", ""),
+        content_markdown=polished["content_markdown"],
+        author_name=author,
+        is_saved=bool(saved_id)
+    )
 
 @router.get("/{slug_or_id}", response_model=ProblemResponse)
 async def get_problem(slug_or_id: str, db: AsyncSession = Depends(get_db)):

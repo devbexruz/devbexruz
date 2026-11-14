@@ -14,7 +14,8 @@ from app.schemas import (
     UserCreate, UserLogin, TokenResponse, UserResponse,
     SendVerificationCodeRequest, SendVerificationCodeResponse,
     RegisterWithCodeRequest, GoogleAuthRequest, TelegramAuthRequest,
-    TelegramSendCodeRequest, TelegramSendCodeResponse, TelegramVerifyCodeRequest
+    TelegramSendCodeRequest, TelegramSendCodeResponse, TelegramVerifyCodeRequest,
+    UpdateRoleRequest
 )
 from app.services.email_service import send_verification_email
 from app.services.telegram_bot_service import send_telegram_message, handle_telegram_update
@@ -432,3 +433,22 @@ async def me(current_user: User = Depends(get_current_user)):
     if not current_user:
         raise HTTPException(status_code=401, detail="Tizimga kiring")
     return UserResponse.model_validate(current_user)
+
+@router.patch("/role", response_model=UserResponse)
+async def update_user_role(
+    req: UpdateRoleRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Tizimga kiring")
+    
+    clean_role = req.role.strip().lower()
+    if clean_role not in ["business", "developer", "admin"]:
+        raise HTTPException(status_code=400, detail="Noto'g'ri rol tanlandi ('business' yoki 'developer')")
+    
+    current_user.role = clean_role
+    await db.commit()
+    await db.refresh(current_user)
+    return UserResponse.model_validate(current_user)
+
