@@ -38,6 +38,28 @@ class EmailVerificationCode(Base):
     is_used = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class TelegramUser(Base):
+    __tablename__ = "telegram_users"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    chat_id = Column(Integer, unique=True, index=True, nullable=False)
+    telegram_id = Column(Integer, index=True, nullable=True)
+    phone_number = Column(String(50), index=True, nullable=True)
+    first_name = Column(String(255), nullable=True)
+    username = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class TelegramVerificationCode(Base):
+    __tablename__ = "telegram_verification_codes"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    phone_number = Column(String(50), index=True, nullable=True)
+    chat_id = Column(Integer, index=True, nullable=True)
+    code = Column(String(10), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 class Problem(Base):
     __tablename__ = "problems"
 

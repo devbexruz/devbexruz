@@ -19,8 +19,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
     
-    # Telegram Notifications
-    TELEGRAM_BOT_TOKEN: Optional[str] = None
+    # Telegram Bot Authentication & Notifications
+    TELEGRAM_BOT_TOKEN: str = "9019719389:AAG2dmGHsSsPWV06ss5Tgsn6RCD3yytQiGU"
+    TELEGRAM_BOT_USERNAME: str = "developerlogicbot"
     TELEGRAM_ADMIN_CHAT_ID: Optional[str] = None
     
     # SMTP / Email Configuration

@@ -49,6 +49,22 @@ class TelegramAuthRequest(BaseModel):
     auth_date: Optional[int] = None
     hash: Optional[str] = None
 
+class TelegramSendCodeRequest(BaseModel):
+    phone_number: str
+
+class TelegramSendCodeResponse(BaseModel):
+    success: bool
+    message: str
+    sent_via_bot: bool = False
+    bot_url: Optional[str] = None
+    expires_in_seconds: int = 600
+    test_code: Optional[str] = None
+
+class TelegramVerifyCodeRequest(BaseModel):
+    phone_number: str
+    code: str
+    full_name: Optional[str] = None
+
 class UserResponse(UserBase):
     id: str
     created_at: datetime

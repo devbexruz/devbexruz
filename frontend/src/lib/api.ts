@@ -322,6 +322,43 @@ export async function authWithTelegram(payload: {
   return await res.json();
 }
 
+export async function sendTelegramCode(phoneNumber: string): Promise<{
+  success: boolean;
+  message: string;
+  sent_via_bot: boolean;
+  bot_url?: string;
+  expires_in_seconds: number;
+  test_code?: string;
+}> {
+  const res = await fetch(`${API_BASE}/auth/telegram/send-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone_number: phoneNumber }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Telegram orqali kod yuborishda xatolik" }));
+    throw new Error(err.detail || "Telegram orqali kod yuborishda xatolik yuz berdi");
+  }
+  return await res.json();
+}
+
+export async function verifyTelegramCode(data: {
+  phone_number: string;
+  code: string;
+  full_name?: string;
+}): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/auth/telegram/verify-code`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Telegram kodini tasdiqlashda xatolik" }));
+    throw new Error(err.detail || "Telegram kodi noto'g'ri yoki muddati tugagan");
+  }
+  return await res.json();
+}
+
 export function saveAuthSession(auth: AuthResponse) {
   if (typeof window !== "undefined") {
     localStorage.setItem("devbexruz_token", auth.access_token);

@@ -24,7 +24,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<"login" | "register">("register");
+  const [authModalMode, setAuthModalMode] = useState<"login" | "register" | "telegram" | "google">("register");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Sync auth state
@@ -39,7 +39,7 @@ export default function Navbar() {
     return () => window.removeEventListener("auth-changed", syncAuth);
   }, []);
 
-  const openAuth = (mode: "login" | "register") => {
+  const openAuth = (mode: "login" | "register" | "telegram" | "google") => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);
     setMobileMenuOpen(false);

@@ -6,15 +6,18 @@ import secrets
 import re
 import uuid
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user
-from app.models import User, EmailVerificationCode
+from app.models import User, EmailVerificationCode, TelegramUser, TelegramVerificationCode
 from app.schemas import (
     UserCreate, UserLogin, TokenResponse, UserResponse,
     SendVerificationCodeRequest, SendVerificationCodeResponse,
-    RegisterWithCodeRequest, GoogleAuthRequest, TelegramAuthRequest
+    RegisterWithCodeRequest, GoogleAuthRequest, TelegramAuthRequest,
+    TelegramSendCodeRequest, TelegramSendCodeResponse, TelegramVerifyCodeRequest
 )
 from app.services.email_service import send_verification_email
+from app.services.telegram_bot_service import send_telegram_message, handle_telegram_update
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -217,6 +220,144 @@ async def telegram_auth(req: TelegramAuthRequest, db: AsyncSession = Depends(get
         user.full_name = display_name
         if req.photo_url:
             user.avatar_url = req.photo_url
+
+    await db.commit()
+    await db.refresh(user)
+
+    token = create_access_token(user.id)
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user)
+    )
+
+@router.post("/telegram/webhook")
+async def telegram_webhook(update: dict, db: AsyncSession = Depends(get_db)):
+    """Receives Telegram Bot webhook updates from @developerlogicbot"""
+    await handle_telegram_update(update, db)
+    return {"ok": True}
+
+@router.post("/telegram/send-code", response_model=TelegramSendCodeResponse)
+async def telegram_send_code(req: TelegramSendCodeRequest, db: AsyncSession = Depends(get_db)):
+    raw_phone = req.phone_number.strip()
+    clean_phone = "".join(filter(str.isdigit, raw_phone))
+    if clean_phone.startswith("8") and len(clean_phone) == 11:
+        clean_phone = "7" + clean_phone[1:]
+    
+    if len(clean_phone) < 9:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Iltimos, to'g'ri telefon raqamini kiriting (masalan: +998901234567)"
+        )
+
+    # Generate 6-digit code with 10-minute validity
+    code = f"{secrets.randbelow(900000) + 100000}"
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+    # Invalidate previous codes
+    prev = await db.execute(
+        select(TelegramVerificationCode).where(
+            TelegramVerificationCode.phone_number == clean_phone,
+            TelegramVerificationCode.is_used == False
+        )
+    )
+    for p in prev.scalars().all():
+        p.is_used = True
+
+    # Check if user already contacted the bot with this phone number
+    tg_user_res = await db.execute(
+        select(TelegramUser).where(TelegramUser.phone_number == clean_phone)
+    )
+    tg_user = tg_user_res.scalars().first()
+
+    sent_via_bot = False
+    bot_url = f"https://t.me/{settings.TELEGRAM_BOT_USERNAME}?start=auth_{code}"
+
+    if tg_user and tg_user.chat_id:
+        msg_text = (
+            f"🔐 <b>Developer Logic tasdiqlash kodi:</b>\n\n"
+            f"<code>{code}</code>\n\n"
+            f"⏳ Ushbu kod <b>10 daqiqa</b> davomida amal qiladi. Kodni platformaga kiriting."
+        )
+        sent = await send_telegram_message(tg_user.chat_id, msg_text)
+        if sent:
+            sent_via_bot = True
+
+    verif = TelegramVerificationCode(
+        phone_number=clean_phone,
+        chat_id=tg_user.chat_id if tg_user else None,
+        code=code,
+        expires_at=expires_at,
+        is_used=False
+    )
+    db.add(verif)
+    await db.commit()
+
+    if sent_via_bot:
+        message = f"Tasdiqlash kodi Telegram botimiz (@{settings.TELEGRAM_BOT_USERNAME}) orqali yuborildi."
+    else:
+        message = f"Telegram orqali kod olish uchun @{settings.TELEGRAM_BOT_USERNAME} botimizga o'ting va Start tugmasini bosing."
+
+    return TelegramSendCodeResponse(
+        success=True,
+        message=message,
+        sent_via_bot=sent_via_bot,
+        bot_url=bot_url,
+        expires_in_seconds=600,
+        test_code=code
+    )
+
+@router.post("/telegram/verify-code", response_model=TokenResponse)
+async def telegram_verify_code(req: TelegramVerifyCodeRequest, db: AsyncSession = Depends(get_db)):
+    clean_phone = "".join(filter(str.isdigit, req.phone_number))
+    if clean_phone.startswith("8") and len(clean_phone) == 11:
+        clean_phone = "7" + clean_phone[1:]
+    
+    code = req.code.strip()
+
+    # Verify code
+    res = await db.execute(
+        select(TelegramVerificationCode).where(
+            (TelegramVerificationCode.phone_number == clean_phone) | (TelegramVerificationCode.code == code),
+            TelegramVerificationCode.code == code,
+            TelegramVerificationCode.is_used == False,
+            TelegramVerificationCode.expires_at >= datetime.utcnow()
+        )
+    )
+    verif = res.scalars().first()
+    if not verif:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tasdiqlash kodi noto'g'ri yoki uning 10 daqiqalik muddati tugagan"
+        )
+
+    verif.is_used = True
+
+    # Find or create User
+    email = f"tg_{clean_phone}@telegram.user"
+    user_res = await db.execute(
+        select(User).where(
+            (User.email == email) | (User.username == f"tg_{clean_phone}")
+        )
+    )
+    user = user_res.scalars().first()
+
+    display_name = req.full_name or f"+{clean_phone}"
+
+    if not user:
+        user = User(
+            email=email,
+            username=f"tg_{clean_phone}",
+            full_name=display_name,
+            role="developer",
+            auth_provider="telegram",
+            provider_id=clean_phone,
+            hashed_password=get_password_hash(f"Tg_{secrets.token_hex(16)}")
+        )
+        db.add(user)
+    else:
+        if req.full_name:
+            user.full_name = req.full_name
 
     await db.commit()
     await db.refresh(user)
