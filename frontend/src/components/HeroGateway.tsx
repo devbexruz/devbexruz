@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Briefcase, Terminal, ArrowRight, Sparkles, Shield, Cpu, Zap, Code2, Users } from "lucide-react";
 
 interface Props {
@@ -128,13 +129,13 @@ export default function HeroGateway({ activeMode, setActiveMode }: Props) {
                 <Terminal className="w-4 h-4" />
                 <span>Muammolar Doskasini Ko'rish</span>
               </a>
-              <a
-                href="/admin/seo"
+              <Link
+                href="/about"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm transition"
               >
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>AI SEO Boshqaruvi</span>
-              </a>
+                <Code2 className="w-4 h-4 text-blue-600" />
+                <span>Arxitektor &amp; Blog</span>
+              </Link>
             </div>
 
             {/* Developer Highlights */}

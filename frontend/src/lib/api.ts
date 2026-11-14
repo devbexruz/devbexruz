@@ -216,21 +216,120 @@ export async function upvoteSolution(solutionId: string) {
   return await res.json();
 }
 
+export const getAdminToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("admin_token") || localStorage.getItem("auth_token");
+};
+
+export const getAuthHeaders = (): Record<string, string> => {
+  const token = getAdminToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export async function fetchSeoStats() {
-  const res = await fetch(`${API_BASE}/admin/seo/stats`, { cache: "no-store" });
+  const res = await fetch(`${API_BASE}/admin/seo/stats`, {
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("SEO statistikasini yuklab bo'lmadi (Admin ruxsati kerak)");
   return await res.json();
 }
 
 export async function generateProblemSeo(problemId: string) {
-  const res = await fetch(`${API_BASE}/admin/seo/generate-meta/${problemId}`, { method: "POST" });
+  const res = await fetch(`${API_BASE}/admin/seo/generate-meta/${problemId}`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("SEO generatsiyada xatolik (Admin ruxsati kerak)");
   return await res.json();
 }
 
 export async function batchGenerateSeo(limit: number = 10, onlyUnoptimized: boolean = false) {
   const res = await fetch(`${API_BASE}/admin/seo/batch-generate-top-k?limit=${limit}&only_unoptimized=${onlyUnoptimized}`, {
     method: "POST",
+    headers: getAuthHeaders(),
   });
+  if (!res.ok) throw new Error("Batch SEO generatsiyada xatolik (Admin ruxsati kerak)");
   return await res.json();
+}
+
+// --- Blog & Career News API ---
+export interface BlogPostItem {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  summary: string;
+  content_markdown: string;
+  tags: string;
+  image_url?: string;
+  read_time: string;
+  is_published: boolean;
+  author_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchBlogs(category?: string): Promise<BlogPostItem[]> {
+  try {
+    const url = category && category !== "Barchasi" 
+      ? `${API_BASE}/blogs?category=${encodeURIComponent(category)}`
+      : `${API_BASE}/blogs`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function fetchBlogBySlug(slug: string): Promise<BlogPostItem | null> {
+  try {
+    const res = await fetch(`${API_BASE}/blogs/${slug}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+export async function fetchAdminBlogs(): Promise<BlogPostItem[]> {
+  const res = await fetch(`${API_BASE}/admin/blogs/all`, {
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Bloglarni yuklab bo'lmadi");
+  return await res.json();
+}
+
+export async function createAdminBlog(data: Partial<BlogPostItem>): Promise<BlogPostItem> {
+  const res = await fetch(`${API_BASE}/admin/blogs`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Blog yaratib bo'lmadi");
+  return await res.json();
+}
+
+export async function updateAdminBlog(id: string, data: Partial<BlogPostItem>): Promise<BlogPostItem> {
+  const res = await fetch(`${API_BASE}/admin/blogs/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Blogni tahrirlab bo'lmadi");
+  return await res.json();
+}
+
+export async function deleteAdminBlog(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/admin/blogs/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Blogni o'chirib bo'lmadi");
 }
 
 // --- User Authentication API ---

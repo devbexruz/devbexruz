@@ -252,3 +252,36 @@ class ProblemAIPolishResponse(BaseModel):
     content_markdown: str
     author_name: str
     is_saved: bool = True
+
+class BlogPostBase(BaseModel):
+    title: str
+    slug: Optional[str] = None
+    category: str = "Career"
+    summary: str
+    content_markdown: str
+    tags: str = ""
+    image_url: Optional[str] = None
+    read_time: str = "4 min"
+    is_published: bool = True
+    author_name: str = "Bexruz Boynazarov"
+
+class BlogPostCreate(BlogPostBase):
+    pass
+
+class BlogPostUpdate(BaseModel):
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    category: Optional[str] = None
+    summary: Optional[str] = None
+    content_markdown: Optional[str] = None
+    tags: Optional[str] = None
+    image_url: Optional[str] = None
+    read_time: Optional[str] = None
+    is_published: Optional[bool] = None
+
+class BlogPostResponse(BlogPostBase):
+    id: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

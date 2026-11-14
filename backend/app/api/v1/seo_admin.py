@@ -6,14 +6,18 @@ from datetime import datetime
 from typing import List
 
 from app.core.database import get_db
-from app.models import Problem
+from app.models import Problem, User
 from app.schemas import AISecMetaResult, ProblemResponse
 from app.services.seo_service import generate_ai_seo_meta
+from app.core.security import get_current_admin_user
 
 router = APIRouter(prefix="/admin/seo", tags=["Admin SEO Engine"])
 
 @router.get("/stats")
-async def get_seo_stats(db: AsyncSession = Depends(get_db)):
+async def get_seo_stats(
+    current_admin: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(Problem))
     all_problems = result.scalars().all()
     
@@ -29,7 +33,11 @@ async def get_seo_stats(db: AsyncSession = Depends(get_db)):
     }
 
 @router.post("/generate-meta/{problem_id}", response_model=AISecMetaResult)
-async def generate_single_problem_seo(problem_id: str, db: AsyncSession = Depends(get_db)):
+async def generate_single_problem_seo(
+    problem_id: str,
+    current_admin: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(Problem).where(Problem.id == problem_id))
     problem = result.scalars().first()
     if not problem:
@@ -63,6 +71,7 @@ async def generate_single_problem_seo(problem_id: str, db: AsyncSession = Depend
 async def batch_generate_top_k(
     limit: int = Query(10, ge=1, le=50, description="Eng mashhur K ta muammoni tanlash"),
     only_unoptimized: bool = Query(False, description="Faqat hali AI generatsiya qilinmaganlarini tanlash"),
+    current_admin: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     query = select(Problem).order_by(desc(Problem.upvotes_count), desc(Problem.view_count))

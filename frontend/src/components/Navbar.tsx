@@ -173,9 +173,9 @@ export default function Navbar() {
 
                   {currentUser.role === "admin" && (
                     <Link
-                      href="/admin/seo"
+                      href="/admin"
                       className="ml-1 p-1.5 rounded-lg text-amber-700 hover:bg-amber-100/70 text-xs font-bold transition"
-                      title="AI SEO Boshqaruvi"
+                      title="Admin Boshqaruv Paneli"
                     >
                       <ShieldAlert className="w-4 h-4 text-amber-600" />
                     </Link>

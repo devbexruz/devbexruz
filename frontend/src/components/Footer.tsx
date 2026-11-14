@@ -41,7 +41,7 @@ export default function Footer() {
                 <Link href="/#ai-estimator" className="hover:text-blue-600 transition">AI Smeta Generatori</Link>
               </li>
               <li>
-                <Link href="/admin/seo" className="hover:text-blue-600 transition">AI SEO Boshqaruvi</Link>
+                <Link href="/about" className="hover:text-blue-600 transition">Men Haqimda (Karyera &amp; Blog)</Link>
               </li>
             </ul>
           </div>

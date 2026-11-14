@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.future import select
 from app.core.database import engine, Base, AsyncSessionLocal
 from app.core.security import get_password_hash
-from app.models import User, Problem, Solution, ServiceItem, ProjectItem
+from app.models import User, Problem, Solution, ServiceItem, ProjectItem, BlogPost
 from app.services.estimator_service import DEFAULT_CATALOG
 from app.api.v1.projects import DEFAULT_PROJECTS
 
@@ -212,6 +212,74 @@ async def init_database():
                     )
                     session.add(sol)
             await session.commit()
+
+        # 5. Seed Initial Blog & Career Posts
+        res_blog = await session.execute(select(BlogPost))
+        if not res_blog.scalars().first():
+            initial_blogs = [
+                {
+                    "title": "Forward Deployed Engineer (FDE) roli nima va nima uchun bugungi bizneslarga aynan shunday muhandis kerak?",
+                    "slug": "forward-deployed-engineer-role-and-business-impact",
+                    "category": "Karyera & Falsafa",
+                    "read_time": "5 daqiqa",
+                    "tags": "FDE, Systems Architect, Karyera, Business Engineering",
+                    "summary": "Klassik dasturchi faqat Jira tasklarini yopadi. Forward Deployed Engineer esa biznes ichiga kirib, operatsion to'siqlarni aniqlaydi va bir necha haftada ishlab ketadigan mustahkam tizim quradi.",
+                    "content_markdown": """### Forward Deployed Engineer (FDE) — Dasturchi va Biznes o'rtasidagi ko'prik
+
+Ko'p yillar davomida dasturiy ta'minot kompaniyalarida bir muammo saqlanib qoldi: **dasturchilar kod yozadi, lekin biznesning real og'riqlarini tushunmaydi**. Natijada oylar davomida ishlab chiqilgan tizimlar amalda ishlatilmaydi yoki biznes operatsiyalarini sekinlashtiradi.
+
+Aynan shu bo'shliqni to'ldirish uchun **Forward Deployed Engineer (FDE)** roli paydo bo'ldi (Palantir va zamonaviy AI laboratoriyalari ilgari surgan konseptsiya).
+
+#### FDE qanday ishlaydi?
+1. **Biznes ichiga chuqur kirish:** Kabinetda o'tirib texnik talabnoma (TOR) kutish emas, balki to'g'ridan-to'g'ri biznes asoschilari, omborchilar, menejerlar bilan muloqot qilib, real muammoni topish.
+2. **Tezkor prototip va arxitektura:** 2-3 kunda ishlovchi prototip chiqarish va uni darhol ishlab chiqarish jarayonida sinash.
+3. **Avtomatlashtirish & High-Load:** Faqat vaqtinchalik yechim emas, balki korxona 10 barobar kattalashganda ham yiqilmaydigan arxitektura (FastAPI, PostgreSQL, Redis, Celery) qurish.
+
+> *"Faqat kod yozish emas — biznesga real moliyaviy va operatsion qiymat olib kelish mening muhandislik burchimdir."*""",
+                },
+                {
+                    "title": "O'zMU Amaliy matematika fakultetidan Real Tizimlar Arxitekturasigacha: 6 yillik tajriba saboqlari",
+                    "slug": "ozmu-applied-math-to-systems-architecture-journey",
+                    "category": "Muhandislik Yo'li",
+                    "read_time": "6 daqiqa",
+                    "tags": "O'zMU, Matematika, Algoritmlar, PostgreSQL, Backend",
+                    "summary": "Matematik modellashtirish, diskret matematika va murakkab algoritmlar qanday qilib millionlab so'rovlarni boshqaruvchi backend arxitekturasida hal qiluvchi rol o'ynashi haqida shaxsiy tahlil.",
+                    "content_markdown": """### Nega fundamental matematika backend muhandisiga kerak?
+
+O'zbekiston Milliy Universiteti (O'zMU) Amaliy matematika fakultetida ta'lim olish menga faqat formulalarni yodlashni emas, balki **har qanday muammoga tizimli va qat'iy mantiqiy yondashishni** o'rgatdi.
+
+#### 1. Indekslash va Graf nazariyasi
+PostgreSQL'da 10M+ yozuvli jadvallarni optimallashtirish shunchaki `CREATE INDEX` yozish emas. Bu B-Tree va Hash daraxtlari tuzilishini, xotirada sahifalar (pages) qanday joylashishini tushunishni talab qiladi.
+
+#### 2. Ehtimollar nazariyasi va Asinxron navbatlar
+Pik yuklamalar paytida Celery workerlari va Redis xotirasini rejalashtirishda ehtimollik taqsimotlari tizimni qulashdan asrab qoladi.
+
+#### 3. Algoritmik intizom
+Murakkab biznes mantiqni to'g'ri algoritmlar bilan qurish orqali server xarajatlarini 60% gacha tejash mumkin. Matematik tafakkur — bu toza va o'zgarmas arxitektura kalitidir.""",
+                },
+                {
+                    "title": "Agentic Coding: Nega qo'lda mexanik kod terish davri yakunlandi?",
+                    "slug": "agentic-coding-future-of-software-engineering",
+                    "category": "AI & Innovatsiya",
+                    "read_time": "4 daqiqa",
+                    "tags": "AI, Agentic Coding, Claude, Fast Development, Kelajak",
+                    "summary": "Bugungi kunda dasturchining qudrati minutiga 50 qator kod yozishda emas, balki AI agentlariga to'g'ri arxitektura berib, ularni boshqara olishidadir.",
+                    "content_markdown": """### Muhandislikning yangi davri: Arxitektor-Operator
+
+AI vositalari paydo bo'lgach, dasturchilik kasbi o'zining eng katta transformatsiyasini boshdan kechirmoqda. 
+
+#### Agentic Engineering nima degani?
+- **Inson vazifasi:** Tizim xavfsizligi, ma'lumotlar bazasi normalizatsiyasi, biznes talablarini texnik arxitekturaga aylantirish va xatarlarni baholash.
+- **AI vazifasi:** Sintaksis yozish, unit testlarni qoplash, standart boilerplate kodlarni generatsiya qilish.
+
+Aynan shu metodologiya orqali men va mening jamoam **2 oy davom etadigan korporativ tizimlarni 2-3 haftada mukammal sifat bilan** topshirishga erishmoqdamiz. Kelajak — bu AI'dan qo'rqqanlar emas, balki uni o'zining superkuchi qilib olgan tizim arxitektorlarinikidir.""",
+                }
+            ]
+            for b_data in initial_blogs:
+                post = BlogPost(**b_data)
+                session.add(post)
+            await session.commit()
+            
     print("Database initialized & seeded successfully!")
 
 if __name__ == "__main__":

@@ -143,3 +143,20 @@ class LeadInquiry(Base):
     estimated_solution_json = Column(Text, nullable=True)
     status = Column(String(50), default="new") # "new", "contacted", "in_progress", "closed"
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class BlogPost(Base):
+    __tablename__ = "blog_posts"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    title = Column(String(255), nullable=False)
+    slug = Column(String(255), unique=True, index=True, nullable=False)
+    category = Column(String(100), default="Career") # "Career", "Architecture", "Engineering", "News"
+    summary = Column(Text, nullable=False)
+    content_markdown = Column(Text, nullable=False)
+    tags = Column(String(255), default="")
+    image_url = Column(String(500), nullable=True)
+    is_published = Column(Boolean, default=True)
+    read_time = Column(String(50), default="4 min")
+    author_name = Column(String(255), default="Bexruz Boynazarov")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

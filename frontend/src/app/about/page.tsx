@@ -1,14 +1,20 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Download, ExternalLink, GraduationCap, Award, Cpu, ShieldCheck, CheckCircle2, Terminal, Code2, Send, Globe } from "lucide-react";
+import { Download, ExternalLink, GraduationCap, Award, Cpu, ShieldCheck, CheckCircle2, Terminal, Code2, Send, Globe, Newspaper } from "lucide-react";
+import { fetchBlogs } from "@/lib/api";
+import AboutBlogSection from "@/components/AboutBlogSection";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "Bexruz Boynazarov — Product Engineer & Systems Architect (Men Haqimda)",
-  description: "Bexruz Boynazarovning 6 yillik muhandislik yo'li, O'zMU Amaliy matematika fakulteti poydevori, Agentic coding falsafasi va rezyumesi.",
-  keywords: ["Bexruz Boynazarov", "Systems Architect", "Product Engineer", "O'zMU", "FastAPI", "PostgreSQL", "CV"],
+  title: "Bexruz Boynazarov — Product Engineer, Systems Architect, Karyera & Blog (Men Haqimda)",
+  description: "Bexruz Boynazarovning 6 yillik muhandislik yo'li, O'zMU Amaliy matematika fakulteti poydevori, Agentic coding falsafasi, shaxsiy blog va yangiliklar.",
+  keywords: ["Bexruz Boynazarov", "Systems Architect", "Product Engineer", "O'zMU", "FastAPI", "PostgreSQL", "CV", "Karyera blogi", "Dasturchi blogi"],
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const blogs = await fetchBlogs();
   const skills = [
     { category: "Arxitektura & Tamoyillar", items: ["Decoupled Microservices", "High-Load Scalability", "SOLID Principles", "Infrastructure Resilience", "Code Review"] },
     { category: "Backend & Texnologiyalar", items: ["FastAPI (Expert)", "Django / DRF", "SQLAlchemy 2.0 (Async)", "Celery", "Redis", "Asyncio"] },
@@ -71,6 +77,13 @@ export default function AboutPage() {
             >
               <Download className="w-4 h-4 text-amber-400" />
               <span>CV (PDF) Yuklab Olish</span>
+            </a>
+            <a
+              href="#blog-section"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-xs transition"
+            >
+              <Newspaper className="w-3.5 h-3.5 text-blue-600" />
+              <span>Blog &amp; Postlar</span>
             </a>
             <a
               href="https://t.me/bexruzdeveloper"
@@ -185,6 +198,9 @@ export default function AboutPage() {
             />
           </div>
         </section>
+
+        {/* Section: Personal Blog & Career Posts */}
+        <AboutBlogSection blogs={blogs} />
 
         {/* Contact CTA */}
         <div className="p-6 rounded-xl bg-slate-900 text-white text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">

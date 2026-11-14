@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles, Globe, RefreshCw, CheckCircle2, AlertCircle, ArrowUpRight, Search, BarChart3, Layers } from "lucide-react";
 import { fetchProblems, fetchSeoStats, generateProblemSeo, batchGenerateSeo, ProblemItem } from "@/lib/api";
+import AdminLayout from "@/components/AdminLayout";
 
 export default function SeoAdminPage() {
   const [problems, setProblems] = useState<ProblemItem[]>([]);
@@ -62,8 +63,8 @@ export default function SeoAdminPage() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AdminLayout>
+      <div className="space-y-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 mb-8 gap-4">
@@ -248,8 +249,7 @@ export default function SeoAdminPage() {
             </table>
           </div>
         </div>
-
       </div>
-    </div>
+    </AdminLayout>
   );
 }

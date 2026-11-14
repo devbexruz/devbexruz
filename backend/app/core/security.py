@@ -27,7 +27,7 @@ def create_access_token(subject: str | Any, expires_delta: Optional[timedelta] =
     return encoded_jwt
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.core.database import get_db
@@ -50,3 +50,20 @@ async def get_current_user(
         return result.scalars().first()
     except Exception:
         return None
+
+async def get_current_admin_user(
+    token_auth: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    user = await get_current_user(token_auth, db)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Tizimga kirish talab etiladi (Admin token mavjud emas)"
+        )
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ushbu amal faqat administrator uchun ruxsat etilgan"
+        )
+    return user
