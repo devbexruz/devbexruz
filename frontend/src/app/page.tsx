@@ -38,14 +38,14 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [serv, proj, prob] = await Promise.all([
+        const [servRes, projRes, probRes] = await Promise.allSettled([
           fetchServices(),
           fetchProjects(),
           fetchProblems(),
         ]);
-        setServices(serv);
-        setProjects(proj);
-        setProblems(prob);
+        if (servRes.status === "fulfilled") setServices(servRes.value);
+        if (projRes.status === "fulfilled") setProjects(projRes.value);
+        if (probRes.status === "fulfilled") setProblems(probRes.value);
       } catch (err) {
         console.error(err);
       } finally {

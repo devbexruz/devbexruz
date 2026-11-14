@@ -3,19 +3,38 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MessageSquare, ThumbsUp, Eye, CheckCircle2, Sparkles, Plus, Search, Tag, Filter, Wand2 } from "lucide-react";
-import { ProblemItem, upvoteProblem, createProblem } from "@/lib/api";
+import { ProblemItem, upvoteProblem, createProblem, fetchProblems } from "@/lib/api";
 import NewProblemModal from "./NewProblemModal";
 
 interface Props {
-  initialProblems: ProblemItem[];
+  initialProblems?: ProblemItem[];
 }
 
-export default function ProblemsFeed({ initialProblems }: Props) {
-  const [problems, setProblems] = useState<ProblemItem[]>(initialProblems);
+export default function ProblemsFeed({ initialProblems = [] }: Props) {
+  const [problems, setProblems] = useState<ProblemItem[]>(initialProblems || []);
+  const [loading, setLoading] = useState<boolean>(!initialProblems || initialProblems.length === 0);
   const [selectedTag, setSelectedTag] = useState<string>("Barchasi");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
+
+  // Sync when initialProblems prop updates or auto-fetch if empty
+  useEffect(() => {
+    if (initialProblems && initialProblems.length > 0) {
+      setProblems(initialProblems);
+      setLoading(false);
+    } else {
+      setLoading(true);
+      fetchProblems()
+        .then((data) => {
+          if (data && data.length > 0) {
+            setProblems(data);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    }
+  }, [initialProblems]);
   
   // Listen for problem-created event from anywhere
   useEffect(() => {
@@ -156,7 +175,22 @@ export default function ProblemsFeed({ initialProblems }: Props) {
 
         {/* Problems List */}
         <div className="space-y-4">
-          {filteredProblems.length === 0 ? (
+          {loading && problems.length === 0 ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-5 sm:p-6 rounded-xl border border-slate-200 bg-white animate-pulse">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-4 w-16 bg-slate-200 rounded"></div>
+                    <div className="h-4 w-20 bg-slate-200 rounded"></div>
+                    <div className="h-4 w-12 bg-slate-200 rounded"></div>
+                  </div>
+                  <div className="h-5 w-3/4 bg-slate-200 rounded mb-2"></div>
+                  <div className="h-4 w-full bg-slate-100 rounded mb-1"></div>
+                  <div className="h-4 w-2/3 bg-slate-100 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : filteredProblems.length === 0 ? (
             <div className="p-12 text-center border border-dashed border-slate-300 rounded-xl text-slate-500 text-xs">
               Ushbu filtr bo'yicha hozircha muammolar topilmadi. Birinchi bo'lib o'z savolingizni qoldiring!
             </div>
