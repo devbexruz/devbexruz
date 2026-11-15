@@ -447,8 +447,13 @@ async def update_user_role(
     if clean_role not in ["business", "developer", "admin"]:
         raise HTTPException(status_code=400, detail="Noto'g'ri rol tanlandi ('business' yoki 'developer')")
     
+    # SuperAdmin must never be demoted by general role switcher
+    if current_user.role == "admin" and clean_role != "admin":
+        return UserResponse.model_validate(current_user)
+
     current_user.role = clean_role
     await db.commit()
     await db.refresh(current_user)
     return UserResponse.model_validate(current_user)
+
 
